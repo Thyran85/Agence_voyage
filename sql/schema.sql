@@ -12,7 +12,8 @@ CREATE TABLE destinations (
     pays VARCHAR2(80) NOT NULL,
     ville VARCHAR2(80) NOT NULL,
     description VARCHAR2(500),
-    prix_base NUMBER(10, 2) NOT NULL CHECK (prix_base >= 0)
+    prix_base NUMBER(10, 2) NOT NULL CHECK (prix_base >= 0),
+    image_path VARCHAR2(500)
 );
 
 CREATE TABLE voyages (
@@ -88,14 +89,14 @@ VALUES ('Martin', 'Hugo', '0605060708', 'hugo.martin@example.com', '8 avenue Vic
 INSERT INTO clients (nom, prenom, telephone, email, adresse)
 VALUES ('Benali', 'Sarah', '0611121314', 'sarah.benali@example.com', '5 boulevard Massena, Marseille');
 
-INSERT INTO destinations (pays, ville, description, prix_base)
-VALUES ('France', 'Paris', 'Culture, gastronomie et monuments.', 650);
-INSERT INTO destinations (pays, ville, description, prix_base)
-VALUES ('Italie', 'Rome', 'Circuit historique et dolce vita.', 780);
-INSERT INTO destinations (pays, ville, description, prix_base)
-VALUES ('Espagne', 'Barcelone', 'Mer, architecture et vie nocturne.', 720);
-INSERT INTO destinations (pays, ville, description, prix_base)
-VALUES ('Maroc', 'Marrakech', 'Souks, palais et desert.', 890);
+INSERT INTO destinations (pays, ville, description, prix_base, image_path)
+VALUES ('France', 'Paris', 'Culture, gastronomie et monuments.', 650, NULL);
+INSERT INTO destinations (pays, ville, description, prix_base, image_path)
+VALUES ('Italie', 'Rome', 'Circuit historique et dolce vita.', 780, NULL);
+INSERT INTO destinations (pays, ville, description, prix_base, image_path)
+VALUES ('Espagne', 'Barcelone', 'Mer, architecture et vie nocturne.', 720, NULL);
+INSERT INTO destinations (pays, ville, description, prix_base, image_path)
+VALUES ('Maroc', 'Marrakech', 'Souks, palais et desert.', 890, NULL);
 
 INSERT INTO voyages (id_destination, date_depart, date_retour, prix, places_disponibles)
 VALUES (1, DATE '2026-07-10', DATE '2026-07-17', 850, 24);

@@ -12,7 +12,15 @@ from app.views.pages.voyages import VoyagesFrame
 from app.views.theme import COLORS, app_font, configure_tree_style
 
 
-NAV_ITEMS = ["Dashboard", "Clients", "Destinations", "Voyages", "Réservations", "Filtres", "SQL Oracle"]
+NAV_ITEMS = {
+    "Dashboard": "▦   Tableau de bord",
+    "Clients": "◉   Clients",
+    "Destinations": "◎   Destinations",
+    "Voyages": "⌁   Voyages",
+    "Réservations": "▤   Réservations",
+    "Filtres": "≡   Filtres",
+    "SQL Oracle": "▣   SQL Oracle",
+}
 
 
 class TravelAgencyApp(ctk.CTk):
@@ -51,8 +59,8 @@ class TravelAgencyApp(ctk.CTk):
 
         nav = ctk.CTkFrame(sidebar, fg_color="transparent")
         nav.pack(fill="x", padx=8)
-        for name in NAV_ITEMS:
-            button = SidebarButton(nav, name, lambda page=name: self.show_page(page))
+        for name, label in NAV_ITEMS.items():
+            button = SidebarButton(nav, label, lambda page=name: self.show_page(page))
             button.pack(fill="x", pady=2)
             self.nav_buttons[name] = button
 
@@ -77,9 +85,25 @@ class TravelAgencyApp(ctk.CTk):
 
         self.top_title = ctk.CTkLabel(topbar, text="", text_color=COLORS["text"], font=app_font(18, "bold"))
         self.top_title.grid(row=0, column=0, padx=24, sticky="w")
-        ctk.CTkLabel(topbar, text="Agent Senior", text_color=COLORS["muted"], font=app_font(12)).grid(
-            row=0, column=1, padx=(0, 24), sticky="e"
-        )
+        actions = ctk.CTkFrame(topbar, fg_color="transparent")
+        actions.grid(row=0, column=1, padx=(0, 24), sticky="e")
+        for label in ["!", "?", "⚙"]:
+            ctk.CTkButton(
+                actions,
+                text=label,
+                width=34,
+                height=34,
+                fg_color="transparent",
+                hover_color=COLORS["surface_high"],
+                text_color=COLORS["muted"],
+                corner_radius=8,
+                font=app_font(14, "bold"),
+            ).pack(side="left", padx=3)
+        ctk.CTkFrame(actions, width=1, height=32, fg_color=COLORS["border"]).pack(side="left", padx=14)
+        profile = ctk.CTkFrame(actions, fg_color="transparent")
+        profile.pack(side="left")
+        ctk.CTkLabel(profile, text="Jean Dupont", text_color=COLORS["text"], font=app_font(12, "bold")).pack(anchor="e")
+        ctk.CTkLabel(profile, text="Agent Sénior", text_color=COLORS["muted"], font=app_font(11)).pack(anchor="e")
         ctk.CTkFrame(topbar, height=1, fg_color=COLORS["border"]).grid(
             row=1, column=0, columnspan=2, sticky="ew"
         )

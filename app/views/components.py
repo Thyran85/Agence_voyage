@@ -70,6 +70,9 @@ class DataTable(Panel):
         self.tree.tag_configure("even", background=COLORS["surface_low"])
         self.tree.tag_configure("odd", background="#181818")
 
+    def bind_select(self, callback):
+        self.tree.bind("<<TreeviewSelect>>", callback)
+
     def selected_id(self):
         selection = self.tree.selection()
         if not selection:

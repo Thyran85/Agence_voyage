@@ -107,6 +107,14 @@ Puis rechargez le schéma :
 podman exec -i oracle-xe sqlplus travel_admin/travel_admin@XEPDB1 < sql/schema.sql
 ```
 
+### Mettre à jour une base existante
+
+Si la base existe déjà et que vous ajoutez les images de destination, appliquez la migration :
+
+```bash
+podman exec -i oracle-xe sqlplus travel_admin/travel_admin@XEPDB1 < sql/migrations/001_add_destination_image_path.sql
+```
+
 ## Configuration
 
 Par défaut, l'application utilise :

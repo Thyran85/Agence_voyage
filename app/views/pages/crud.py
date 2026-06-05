@@ -1,4 +1,4 @@
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
 
@@ -77,6 +77,34 @@ class CrudFrame(ctk.CTkFrame):
         )
         entry.grid(row=1, column=0, sticky="ew")
         self.entries[field["name"]] = entry
+        if field.get("type") == "file":
+            entry.grid(row=1, column=0, sticky="ew", padx=(0, 100))
+            ctk.CTkButton(
+                group,
+                text="Parcourir",
+                command=lambda field_name=field["name"]: self._choose_file(field_name),
+                width=92,
+                height=34,
+                fg_color=COLORS["surface_high"],
+                hover_color=COLORS["surface_highest"],
+                text_color=COLORS["text"],
+                corner_radius=8,
+                font=app_font(12, "bold"),
+            ).grid(row=1, column=0, sticky="e")
+
+    def _choose_file(self, field_name):
+        path = filedialog.askopenfilename(
+            title="Choisir une image",
+            filetypes=[
+                ("Images", "*.png *.gif *.jpg *.jpeg *.webp"),
+                ("Tous les fichiers", "*.*"),
+            ],
+        )
+        if not path:
+            return
+        entry = self.entries[field_name]
+        entry.delete(0, "end")
+        entry.insert(0, path)
 
     def _build_table_panel(self):
         content = ctk.CTkFrame(self, fg_color="transparent")
@@ -117,9 +145,12 @@ class CrudFrame(ctk.CTkFrame):
         self.sort_dir.set("ASC")
         self.sort_dir.grid(row=1, column=1, padx=8, pady=(0, 12), sticky="w")
 
-        self.table = DataTable(content)
+        self.table = self.create_table(content)
         self.table.grid(row=1, column=0, sticky="nsew")
-        self.table.tree.bind("<<TreeviewSelect>>", self.fill_form)
+        self.table.bind_select(self.fill_form)
+
+    def create_table(self, master):
+        return DataTable(master)
 
     def _option_menu(self, master, values):
         return ctk.CTkOptionMenu(
@@ -230,4 +261,3 @@ class CrudFrame(ctk.CTkFrame):
             self.refresh()
         except Exception as error:
             messagebox.showerror("Suppression impossible", str(error))
-

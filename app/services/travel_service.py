@@ -132,3 +132,20 @@ class TravelService:
                 """
             ),
         }
+
+    def recent_reservations(self, limit=4):
+        return self.database.fetch_all(
+            """
+            SELECT * FROM (
+                SELECT c.nom, c.prenom, d.pays, d.ville,
+                       r.date_reservation, r.montant
+                FROM reservations r
+                INNER JOIN clients c ON c.id_client = r.id_client
+                INNER JOIN voyages v ON v.id_voyage = r.id_voyage
+                INNER JOIN destinations d ON d.id_destination = v.id_destination
+                ORDER BY r.date_reservation DESC
+            )
+            WHERE ROWNUM <= :limit
+            """,
+            {"limit": limit},
+        )

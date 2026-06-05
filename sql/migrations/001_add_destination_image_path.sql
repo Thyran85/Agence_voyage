@@ -1,0 +1,11 @@
+BEGIN
+    EXECUTE IMMEDIATE 'ALTER TABLE destinations ADD image_path VARCHAR2(500)';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE != -1430 THEN
+            RAISE;
+        END IF;
+END;
+/
+
+COMMIT;
