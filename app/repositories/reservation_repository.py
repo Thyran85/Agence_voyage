@@ -10,15 +10,16 @@ class ReservationRepository(BaseRepository):
         "date_reservation",
         "nombre_personnes",
         "montant",
+        "status",
     )
     searchable_columns = ("id_client", "id_voyage")
     sortable_columns = ("date_reservation", "montant")
 
     def list(self, search_by=None, search_value=None, sort_by=None, sort_dir="ASC"):
         sql = """
-            SELECT r.id_reservation, r.id_client, c.nom, c.prenom,
-                   r.id_voyage, d.pays, d.ville, r.date_reservation,
-                   r.nombre_personnes, r.montant
+                 SELECT r.id_reservation, r.id_client, c.nom, c.prenom,
+                     r.id_voyage, d.pays, d.ville, r.date_reservation,
+                     r.nombre_personnes, r.montant, r.status
             FROM reservations r
             INNER JOIN clients c ON c.id_client = r.id_client
             INNER JOIN voyages v ON v.id_voyage = r.id_voyage

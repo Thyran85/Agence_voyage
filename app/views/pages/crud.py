@@ -16,8 +16,9 @@ class CrudFrame(ctk.CTkFrame):
         self.search_options = search_options
         self.sort_options = sort_options
         self.entries = {}
+        self._select_mappings = {}
 
-        self.grid_columnconfigure(0, weight=0, minsize=360)
+        self.grid_columnconfigure(0, weight=0, minsize=300)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
@@ -32,11 +33,16 @@ class CrudFrame(ctk.CTkFrame):
         form = Panel(self)
         form.grid(row=1, column=0, padx=(24, 12), pady=(0, 24), sticky="nsew")
         form.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(form, text="FICHE", text_color=COLORS["primary"], font=app_font(16, "bold")).grid(
+        # make the form content scrollable so fields stay accessible on small windows
+        scroll = ctk.CTkScrollableFrame(form, fg_color="transparent")
+        scroll.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
+        form.grid_rowconfigure(0, weight=1)
+
+        ctk.CTkLabel(scroll, text="FICHE", text_color=COLORS["primary"], font=app_font(16, "bold")).grid(
             row=0, column=0, padx=16, pady=(16, 4), sticky="w"
         )
         ctk.CTkLabel(
-            form,
+            scroll,
             text="Renseignez les champs puis utilisez les actions ci-dessous.",
             text_color=COLORS["muted"],
             font=app_font(12),
@@ -45,15 +51,16 @@ class CrudFrame(ctk.CTkFrame):
         ).grid(row=1, column=0, padx=16, pady=(0, 12), sticky="w")
 
         for index, field in enumerate(self.fields, start=2):
-            self._build_field(form, index, field)
+            self._build_field(scroll, index, field)
 
+        # action buttons stay fixed at the bottom of the form (outside the scrollable area)
         actions = ctk.CTkFrame(form, fg_color="transparent")
-        actions.grid(row=len(self.fields) + 2, column=0, padx=16, pady=(16, 16), sticky="ew")
-        actions.grid_columnconfigure((0, 1), weight=1)
+        actions.grid(row=1, column=0, padx=16, pady=(16, 16), sticky="ew")
+        actions.grid_columnconfigure(0, weight=1)
         self._action_button(actions, "Ajouter", self.create_item, COLORS["primary_container"], 0, 0)
-        self._action_button(actions, "Modifier", self.update_item, COLORS["surface_high"], 0, 1)
-        self._action_button(actions, "Supprimer", self.delete_item, COLORS["danger"], 1, 0, COLORS["danger_text"])
-        self._action_button(actions, "Effacer", self.clear_form, COLORS["surface_high"], 1, 1)
+        self._action_button(actions, "Modifier", self.update_item, COLORS["surface_high"], 1, 0)
+        self._action_button(actions, "Supprimer", self.delete_item, COLORS["danger"], 2, 0, COLORS["danger_text"])
+        self._action_button(actions, "Effacer", self.clear_form, COLORS["surface_high"], 3, 0)
 
     def _build_field(self, master, index, field):
         group = ctk.CTkFrame(master, fg_color="transparent")
@@ -65,6 +72,57 @@ class CrudFrame(ctk.CTkFrame):
             text_color=COLORS["muted"],
             font=app_font(11, "bold"),
         ).grid(row=0, column=0, sticky="w", pady=(0, 4))
+        # support for select/dropdown fields
+        if field.get("type") == "select":
+            values = []
+            mapping = {}
+            source = field.get("options_source")
+            service = getattr(self, "service", None)
+            if service and source and hasattr(service, source):
+                try:
+                    items = getattr(service, source).list()
+                except Exception:
+                    items = []
+            else:
+                items = field.get("options", [])
+
+            # build label/id mapping depending on source
+            for item in items:
+                if isinstance(item, dict):
+                    # common cases
+                    if source == "clients":
+                        label = f"{item.get('nom','')} {item.get('prenom','')}"
+                        _id = item.get('id_client')
+                    elif source == "destinations":
+                        label = f"{item.get('pays','')} - {item.get('ville','')}"
+                        _id = item.get('id_destination')
+                    elif source == "voyages":
+                        label = f"Voyage #{item.get('id_voyage')} - {item.get('ville','') if 'ville' in item else ''}"
+                        _id = item.get('id_voyage')
+                    else:
+                        # generic: try id column and a display column
+                        id_key = next((k for k in item.keys() if k.startswith('id')), None)
+                        _id = item.get(id_key) if id_key else None
+                        label = " ".join(str(v) for k, v in item.items() if k != id_key)
+                else:
+                    # if items are simple tuples like (id, label)
+                    try:
+                        _id, label = item
+                    except Exception:
+                        label = str(item)
+                        _id = item
+
+                if label is None:
+                    label = str(_id)
+                mapping[str(label)] = str(_id)
+                values.append(label)
+
+            option = self._option_menu(group, values or [""])
+            option.grid(row=1, column=0, sticky="ew")
+            self.entries[field["name"]] = option
+            self._select_mappings[field["name"]] = mapping
+            return
+
         entry = ctk.CTkEntry(
             group,
             height=34,
@@ -194,28 +252,56 @@ class CrudFrame(ctk.CTkFrame):
         ).grid(row=row, column=column, padx=12, pady=12, sticky="e")
 
     def collect_form(self):
-        return {
-            field["name"]: parse_value(
-                self.entries[field["name"]].get(),
-                field.get("type", "str"),
-            )
-            for field in self.fields
-        }
+        data = {}
+        for field in self.fields:
+            name = field["name"]
+            ftype = field.get("type", "str")
+            raw = self.entries[name].get()
+            if ftype == "select":
+                mapping = self._select_mappings.get(name, {})
+                # map selected label back to id or value
+                selected_id = mapping.get(raw, raw)
+                value_type = field.get("value_type", "int" if field.get("options_source") else "str")
+                data[name] = parse_value(selected_id, value_type)
+            else:
+                data[name] = parse_value(raw, ftype)
+        return data
 
     def clear_form(self):
-        for entry in self.entries.values():
-            entry.delete(0, "end")
+        for name, entry in self.entries.items():
+            try:
+                entry.set("")
+            except Exception:
+                try:
+                    entry.delete(0, "end")
+                except Exception:
+                    pass
 
     def fill_form(self, _event=None):
         selected = self.table.selected_values()
         if not selected:
             return
         for field in self.fields:
-            entry = self.entries[field["name"]]
-            entry.delete(0, "end")
-            value = selected.get(field["name"], "")
-            if value is not None:
-                entry.insert(0, str(value)[:10] if field.get("type") == "date" else str(value))
+            name = field["name"]
+            entry = self.entries[name]
+            value = selected.get(name, "")
+            if field.get("type") == "select":
+                # map id -> label
+                mapping = self._select_mappings.get(name, {})
+                # reverse mapping
+                rev = {v: k for k, v in mapping.items()}
+                label = rev.get(value) or rev.get(str(value)) or ""
+                try:
+                    entry.set(label)
+                except Exception:
+                    pass
+            else:
+                try:
+                    entry.delete(0, "end")
+                    if value is not None:
+                        entry.insert(0, str(value)[:10] if field.get("type") == "date" else str(value))
+                except Exception:
+                    pass
 
     def refresh(self):
         try:

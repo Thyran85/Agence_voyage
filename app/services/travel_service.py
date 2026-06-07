@@ -24,17 +24,151 @@ class TravelService:
 
     def create_reservation(self, data):
         data = dict(data)
+        nombre = int(data.get("nombre_personnes", 0))
+        if nombre <= 0:
+            raise ValueError("Le nombre de personnes doit être supérieur à 0.")
+
+        # calculate amount
         data["montant"] = self.calculate_reservation_amount(
-            data["id_voyage"], data["nombre_personnes"]
+            data["id_voyage"], nombre
         )
-        return self.reservations.create(data)
+
+        # perform reservation and decrement places in a transaction
+        with self.database.connection() as conn:
+            cursor = conn.cursor()
+            # lock voyage row
+            cursor.execute(
+                "SELECT places_disponibles FROM voyages WHERE id_voyage = :id_voyage FOR UPDATE",
+                {"id_voyage": data["id_voyage"]},
+            )
+            row = cursor.fetchone()
+            if not row:
+                raise ValueError("Voyage introuvable.")
+            available = int(row[0])
+            if available < nombre:
+                raise ValueError("Pas assez de places disponibles pour ce voyage.")
+
+            # decrement places
+            cursor.execute(
+                "UPDATE voyages SET places_disponibles = places_disponibles - :n WHERE id_voyage = :id_voyage",
+                {"n": nombre, "id_voyage": data["id_voyage"]},
+            )
+
+            # insert reservation
+            cols = ["id_client", "id_voyage", "nombre_personnes", "montant", "status"]
+            params = {
+                "id_client": data.get("id_client"),
+                "id_voyage": data.get("id_voyage"),
+                "nombre_personnes": nombre,
+                "montant": data.get("montant"),
+                "status": data.get("status", "EN ATTENTE"),
+            }
+            # handle optional date_reservation
+            if data.get("date_reservation"):
+                cols.insert(2, "date_reservation")
+                params["date_reservation"] = data.get("date_reservation")
+
+            placeholders = ", ".join(f":{c}" for c in cols)
+            sql = f"INSERT INTO reservations ({', '.join(cols)}) VALUES ({placeholders})"
+            cursor.execute(sql, params)
+            return cursor.rowcount
 
     def update_reservation(self, id_reservation, data):
         data = dict(data)
+        nombre = int(data.get("nombre_personnes", 0))
+
+        # recalc amount
         data["montant"] = self.calculate_reservation_amount(
-            data["id_voyage"], data["nombre_personnes"]
+            data["id_voyage"], nombre
         )
-        return self.reservations.update(id_reservation, data)
+
+        with self.database.connection() as conn:
+            cursor = conn.cursor()
+            # fetch existing reservation
+            cursor.execute(
+                "SELECT id_voyage, nombre_personnes FROM reservations WHERE id_reservation = :id",
+                {"id": id_reservation},
+            )
+            old = cursor.fetchone()
+            if not old:
+                raise ValueError("Réservation introuvable.")
+            old_voyage, old_nombre = int(old[0]), int(old[1])
+
+            new_voyage = int(data.get("id_voyage"))
+            # if voyage unchanged, adjust by difference
+            if new_voyage == old_voyage:
+                delta = nombre - old_nombre
+                if delta > 0:
+                    # need to reserve more seats
+                    cursor.execute(
+                        "SELECT places_disponibles FROM voyages WHERE id_voyage = :id_voyage FOR UPDATE",
+                        {"id_voyage": new_voyage},
+                    )
+                    avail = cursor.fetchone()
+                    if not avail or int(avail[0]) < delta:
+                        raise ValueError("Pas assez de places disponibles pour augmenter le nombre de personnes.")
+                    cursor.execute(
+                        "UPDATE voyages SET places_disponibles = places_disponibles - :n WHERE id_voyage = :id_voyage",
+                        {"n": delta, "id_voyage": new_voyage},
+                    )
+                elif delta < 0:
+                    # release seats
+                    cursor.execute(
+                        "UPDATE voyages SET places_disponibles = places_disponibles + :n WHERE id_voyage = :id_voyage",
+                        {"n": -delta, "id_voyage": new_voyage},
+                    )
+            else:
+                # restore seats on old voyage
+                cursor.execute(
+                    "UPDATE voyages SET places_disponibles = places_disponibles + :n WHERE id_voyage = :id_voyage",
+                    {"n": old_nombre, "id_voyage": old_voyage},
+                )
+                # lock and decrement on new voyage
+                cursor.execute(
+                    "SELECT places_disponibles FROM voyages WHERE id_voyage = :id_voyage FOR UPDATE",
+                    {"id_voyage": new_voyage},
+                )
+                avail = cursor.fetchone()
+                if not avail or int(avail[0]) < nombre:
+                    raise ValueError("Pas assez de places disponibles pour ce nouveau voyage.")
+                cursor.execute(
+                    "UPDATE voyages SET places_disponibles = places_disponibles - :n WHERE id_voyage = :id_voyage",
+                    {"n": nombre, "id_voyage": new_voyage},
+                )
+
+            # update reservation record
+            assignments = []
+            params = {"id": id_reservation}
+            for col in ("id_client", "id_voyage", "date_reservation", "nombre_personnes", "montant", "status"):
+                if col in data:
+                    assignments.append(f"{col} = :{col}")
+                    params[col] = data[col]
+            if assignments:
+                sql = f"UPDATE reservations SET {', '.join(assignments)} WHERE id_reservation = :id"
+                cursor.execute(sql, params)
+            return cursor.rowcount
+
+    def delete_reservation(self, id_reservation):
+        with self.database.connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id_voyage, nombre_personnes FROM reservations WHERE id_reservation = :id",
+                {"id": id_reservation},
+            )
+            row = cursor.fetchone()
+            if not row:
+                raise ValueError("Réservation introuvable.")
+            id_voyage, nombre = int(row[0]), int(row[1])
+            # restore seats
+            cursor.execute(
+                "UPDATE voyages SET places_disponibles = places_disponibles + :n WHERE id_voyage = :id_voyage",
+                {"n": nombre, "id_voyage": id_voyage},
+            )
+            cursor.execute(
+                "DELETE FROM reservations WHERE id_reservation = :id",
+                {"id": id_reservation},
+            )
+            return cursor.rowcount
 
     def filter_voyages(self, filters):
         sql = """
@@ -100,12 +234,31 @@ class TravelService:
         return sql, self.database.fetch_all(sql, params)
 
     def dashboard_stats(self):
-        return {
-            "clients": self.database.fetch_one("SELECT COUNT(*) total FROM clients")["total"],
-            "destinations": self.database.fetch_one("SELECT COUNT(*) total FROM destinations")["total"],
-            "voyages": self.database.fetch_one("SELECT COUNT(*) total FROM voyages")["total"],
-            "reservations": self.database.fetch_one("SELECT COUNT(*) total FROM reservations")["total"],
-            "destination_top": self.database.fetch_one(
+        stats = {}
+        stats["clients"] = self.database.fetch_one("SELECT COUNT(*) total FROM clients")["total"]
+        stats["destinations"] = self.database.fetch_one("SELECT COUNT(*) total FROM destinations")["total"]
+        stats["voyages"] = self.database.fetch_one("SELECT COUNT(*) total FROM voyages")["total"]
+        stats["reservations"] = self.database.fetch_one("SELECT COUNT(*) total FROM reservations")["total"]
+
+        # destination_top: try to include image_path if the column exists, else fallback
+        try:
+            destination_top = self.database.fetch_one(
+                """
+                SELECT id_destination AS id, image_path, label, total FROM (
+                    SELECT d.id_destination,
+                           d.image_path,
+                           d.pays || ' - ' || d.ville AS label,
+                           COUNT(*) AS total
+                    FROM reservations r
+                    INNER JOIN voyages v ON v.id_voyage = r.id_voyage
+                    INNER JOIN destinations d ON d.id_destination = v.id_destination
+                    GROUP BY d.id_destination, d.image_path, d.pays, d.ville
+                    ORDER BY total DESC
+                ) WHERE ROWNUM = 1
+                """
+            )
+        except Exception:
+            tmp = self.database.fetch_one(
                 """
                 SELECT label, total FROM (
                     SELECT d.pays || ' - ' || d.ville AS label,
@@ -117,8 +270,32 @@ class TravelService:
                     ORDER BY total DESC
                 ) WHERE ROWNUM = 1
                 """
-            ),
-            "voyage_top": self.database.fetch_one(
+            )
+            if tmp:
+                destination_top = {"label": tmp.get("label"), "total": tmp.get("total"), "image_path": None, "id": None}
+            else:
+                destination_top = None
+
+        # voyage_top: try to include image_path if available, else fallback
+        try:
+            voyage_top = self.database.fetch_one(
+                """
+                SELECT id_voyage AS id, v.id_destination, d.image_path, label, total FROM (
+                    SELECT v.id_voyage,
+                           v.id_destination,
+                           d.image_path,
+                           'Voyage #' || v.id_voyage || ' - ' || d.ville AS label,
+                           COUNT(*) AS total
+                    FROM reservations r
+                    INNER JOIN voyages v ON v.id_voyage = r.id_voyage
+                    INNER JOIN destinations d ON d.id_destination = v.id_destination
+                    GROUP BY v.id_voyage, v.id_destination, d.image_path, d.ville
+                    ORDER BY total DESC
+                ) WHERE ROWNUM = 1
+                """
+            )
+        except Exception:
+            tmp = self.database.fetch_one(
                 """
                 SELECT label, total FROM (
                     SELECT 'Voyage #' || v.id_voyage || ' - ' || d.ville AS label,
@@ -130,8 +307,15 @@ class TravelService:
                     ORDER BY total DESC
                 ) WHERE ROWNUM = 1
                 """
-            ),
-        }
+            )
+            if tmp:
+                voyage_top = {"label": tmp.get("label"), "total": tmp.get("total"), "image_path": None, "id": None}
+            else:
+                voyage_top = None
+
+        stats["destination_top"] = destination_top
+        stats["voyage_top"] = voyage_top
+        return stats
 
     def recent_reservations(self, limit=4):
         return self.database.fetch_all(

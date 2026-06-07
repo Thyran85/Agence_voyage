@@ -35,6 +35,7 @@ CREATE TABLE reservations (
     date_reservation DATE DEFAULT SYSDATE NOT NULL,
     nombre_personnes NUMBER NOT NULL CHECK (nombre_personnes > 0),
     montant NUMBER(10, 2) NOT NULL CHECK (montant >= 0),
+    status VARCHAR2(20) DEFAULT 'EN ATTENTE' NOT NULL,
     CONSTRAINT fk_reservations_client
         FOREIGN KEY (id_client) REFERENCES clients(id_client),
     CONSTRAINT fk_reservations_voyage

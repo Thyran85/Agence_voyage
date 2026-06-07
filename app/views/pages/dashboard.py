@@ -3,7 +3,7 @@ from tkinter import messagebox
 import customtkinter as ctk
 
 from app.views.components import PageHeader, Panel
-from app.views.images import hero_image
+from app.views.images import hero_image, destination_image
 from app.views.theme import COLORS, app_font
 
 
@@ -73,16 +73,26 @@ class DashboardFrame(ctk.CTkFrame):
             "Aucun voyage",
             "Aucune session active",
             1,
+            use_image=False,
+            icon="✈️",
         )
 
-    def _hero_card(self, master, image_kind, kicker, title, subtitle, column):
+    def _hero_card(self, master, image_kind, kicker, title, subtitle, column, use_image=True, icon=None):
         card = Panel(master)
         card.grid(row=0, column=column, padx=(0, 10) if column == 0 else (10, 0), sticky="nsew")
         card.grid_columnconfigure(0, weight=1)
-        image = hero_image(image_kind, size=(520, 220))
-        label = ctk.CTkLabel(card, image=image, text="")
-        label.image_ref = image
-        label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+        if use_image:
+            image = hero_image(image_kind, size=(520, 220))
+            label = ctk.CTkLabel(card, image=image, text="")
+            label.image_ref = image
+            label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+        else:
+            # simple icon/status panel instead of a background image
+            placeholder = ctk.CTkFrame(card, fg_color=COLORS["surface_low"])
+            placeholder.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+            icon_label = ctk.CTkLabel(placeholder, text=icon or "", font=app_font(48))
+            icon_label.place(relx=0.5, rely=0.5, anchor="center")
+            label = icon_label
 
         overlay = ctk.CTkFrame(card, fg_color="transparent")
         overlay.grid(row=0, column=0, sticky="sw", padx=22, pady=20)
@@ -91,7 +101,7 @@ class DashboardFrame(ctk.CTkFrame):
         title_label.pack(anchor="w", pady=(4, 2))
         subtitle_label = ctk.CTkLabel(overlay, text=subtitle, text_color=COLORS["muted"], font=app_font(13))
         subtitle_label.pack(anchor="w")
-        return {"title": title_label, "subtitle": subtitle_label}
+        return {"title": title_label, "subtitle": subtitle_label, "image_label": label}
 
     def _build_recent_reservations(self):
         panel = Panel(self)
@@ -133,10 +143,19 @@ class DashboardFrame(ctk.CTkFrame):
             self.cards["réservations"].configure(text=str(stats["reservations"]))
             destination = stats["destination_top"] or {"label": "Aucune", "total": 0}
             voyage = stats["voyage_top"] or {"label": "Aucun", "total": 0}
-            self.top_destination["title"].configure(text=destination["label"])
-            self.top_destination["subtitle"].configure(text=f"{destination['total']} réservations")
-            self.top_voyage["title"].configure(text=voyage["label"])
-            self.top_voyage["subtitle"].configure(text=f"{voyage['total']} réservations enregistrées")
+            self.top_destination["title"].configure(text=destination.get("label"))
+            self.top_destination["subtitle"].configure(text=f"{destination.get('total', 0)} réservations")
+            # set image for destination if available
+            dest_img = None
+            if destination and destination.get("image_path"):
+                dest_img = destination_image(None, image_path=destination.get("image_path"), size=(520, 220))
+            if dest_img:
+                lbl = self.top_destination.get("image_label")
+                lbl.configure(image=dest_img)
+                lbl.image_ref = dest_img
+
+            self.top_voyage["title"].configure(text=voyage.get("label"))
+            self.top_voyage["subtitle"].configure(text=f"{voyage.get('total', 0)} réservations enregistrées")
             self._refresh_recent_reservations()
         except Exception as error:
             messagebox.showerror("Dashboard indisponible", str(error))
