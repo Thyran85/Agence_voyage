@@ -1,0 +1,64 @@
+{% extends "travel/base.html" %}
+{% block content %}
+<div class="flex flex-col gap-6">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+        <div class="min-w-0">
+            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">{{ page_title }}</div>
+            <h2 class="mt-1 text-xl sm:text-2xl font-bold text-ink">{% block list_title %}{% endblock %}</h2>
+            <p class="mt-1 text-sm text-ink-muted">{% block list_subtitle %}{% endblock %}</p>
+        </div>
+        <div class="flex gap-2 shrink-0">
+            {% block list_actions %}{% endblock %}
+        </div>
+    </div>
+
+    <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-900">
+        <form method="get" class="flex flex-col gap-3 border-b border-surface-700 px-4 sm:px-5 py-4 lg:flex-row lg:items-center">
+            <div class="relative flex-1">
+                <i data-lucide="search" class="lucide pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-subtle"></i>
+                <input type="text" name="search_value" value="{{ search_value|default:'' }}" placeholder="Rechercher dans la base..." class="w-full rounded-lg border border-surface-700 bg-surface-950 py-2 pl-9 pr-3 text-sm text-ink placeholder:text-ink-subtle focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+            </div>
+            <div class="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
+                <select name="search_by" class="rounded-lg border border-surface-700 bg-surface-950 px-3 py-2 text-sm text-ink focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    {% block search_options %}{% endblock %}
+                </select>
+                <select name="sort_by" class="rounded-lg border border-surface-700 bg-surface-950 px-3 py-2 text-sm text-ink focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    {% block sort_options %}{% endblock %}
+                </select>
+                <div class="inline-flex rounded-lg border border-surface-700 bg-surface-950 p-0.5 text-xs font-semibold">
+                    <label class="cursor-pointer rounded-md px-2.5 py-1.5 transition {% if sort_dir == 'ASC' %}bg-surface-700 text-ink{% else %}text-ink-muted hover:text-ink{% endif %}">
+                        <input type="radio" name="sort_dir" value="ASC" class="sr-only" {% if sort_dir == 'ASC' %}checked{% endif %} /> ASC
+                    </label>
+                    <label class="cursor-pointer rounded-md px-2.5 py-1.5 transition {% if sort_dir == 'DESC' %}bg-surface-700 text-ink{% else %}text-ink-muted hover:text-ink{% endif %}">
+                        <input type="radio" name="sort_dir" value="DESC" class="sr-only" {% if sort_dir == 'DESC' %}checked{% endif %} /> DESC
+                    </label>
+                </div>
+                <button type="submit" class="col-span-2 sm:col-span-1 btn-primary">
+                    <i data-lucide="funnel" class="lucide text-white"></i> Filtrer
+                </button>
+            </div>
+        </form>
+
+        <!-- Mobile cards (<md) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 md:hidden">
+            {% block cards_body %}{% endblock %}
+        </div>
+
+        <!-- Desktop table (md+) -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b border-surface-700 text-left text-[11px] uppercase tracking-wider text-ink-subtle">
+                        {% block grid_header %}{% endblock %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-surface-700">
+                    {% block grid_body %}{% endblock %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% block below_grid %}{% endblock %}
+</div>
+{% endblock %}

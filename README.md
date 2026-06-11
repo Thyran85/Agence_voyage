@@ -1,22 +1,28 @@
-# Application Desktop Agence de Voyage
+# Application Web Agence de Voyage (Django)
 
-Application Python 3 avec CustomTkinter, Oracle Database XE et python-oracledb.
-Le projet suit une architecture MVC simplifiée :
+Application web Django 5 qui remplace l'application desktop CustomTkinter
+d'origine. La couche métier existante (services / repositories / accès
+Oracle via `python-oracledb`) est réutilisée telle quelle ; Django ne sert
+que de frontal HTTP.
 
-- `app/views` : interface graphique CustomTkinter
-- `app/controllers` : orchestration entre vues et services
-- `app/services` : logique métier, filtres, statistiques
-- `app/repositories` : accès aux tables Oracle
-- `sql/schema.sql` : création des tables, séquences, triggers et données de démonstration
+## Architecture
+
+- `oracleproject_web/` : projet Django (settings, urls racine)
+- `travel/` : application Django (models, views, forms, urls, templates)
+- `templates/` : templates HTML (layout + pages)
+- `static/` : fichiers statiques (CSS, JS, images)
+- `app/services/` : couche métier (réutilisée depuis l'ancien projet)
+- `app/repositories/` : accès Oracle bas niveau
+- `sql/schema.sql` : schéma Oracle (inchangé)
 
 ## Fonctionnalités
 
-- CRUD complet pour clients, destinations, voyages et réservations
-- Recherche et tri par module
-- Calcul automatique du montant d'une réservation
-- Filtres multicritères dynamiques pour voyages et réservations
-- Onglet pédagogique avec exemples Oracle : `SELECT`, `WHERE`, `LIKE`, `BETWEEN`, `IN`, `ORDER BY`, `GROUP BY`, `HAVING`, jointures et sous-requête
-- Dashboard avec totaux, destination la plus réservée et voyage le plus réservé
+- Tableau de bord avec totaux, destination et voyage les plus réservés
+- CRUD complet pour clients, destinations, voyages, réservations
+- Recherche et tri dynamiques sur chaque module
+- Filtres multicritères avec aperçu SQL généré
+- Onglet pédagogique SQL Oracle (SELECT, WHERE, LIKE, BETWEEN, IN, ORDER BY, GROUP BY, HAVING, jointures, sous-requêtes)
+- Interface sombre reproduisant le thème de l'application desktop
 
 ## Installation
 
@@ -25,6 +31,32 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+
+## Préparer Oracle XE
+
+Identique à la version desktop : créer l'utilisateur `travel_admin`,
+charger le schéma avec `sql/schema.sql`. Voir la section correspondante
+plus bas.
+
+## Lancement du serveur web
+
+```bash
+python manage.py migrate            # crée la base SQLite pour auth/admin
+python manage.py runserver 0.0.0.0:8000
+```
+
+Puis ouvrir <http://localhost:8000/>.
+
+Les variables d'environnement suivantes sont reconnues :
+
+| Variable              | Valeur par défaut             | Description                       |
+|-----------------------|-------------------------------|-----------------------------------|
+| `ORACLE_USER`         | `travel_admin`                | Utilisateur Oracle                |
+| `ORACLE_PASSWORD`     | `travel_admin`                | Mot de passe Oracle               |
+| `ORACLE_DSN`          | `localhost:1521/XEPDB1`       | DSN Oracle                        |
+| `DJANGO_SECRET_KEY`   | valeur de dev                 | Clé secrète Django                |
+| `DJANGO_DEBUG`        | `1`                           | Mettre `0` en production          |
+| `DJANGO_ALLOWED_HOSTS`| `*`                           | Liste CSV des hôtes autorisés     |
 
 ## Préparer Oracle XE
 
@@ -45,96 +77,17 @@ Chargez ensuite le schéma depuis la racine du projet avec le `sqlplus` du conte
 podman exec -i oracle-xe sqlplus travel_admin/travel_admin@XEPDB1 < sql/schema.sql
 ```
 
-La forme avec `< sql/schema.sql` est importante : le fichier est sur votre machine, pas dans le conteneur.
+Si vous rencontrez l'erreur `ORA-01950`, voir la section
+« Réparer l'erreur ORA-01950 » du README d'origine pour les commandes de
+correction.
 
-Si `sqlplus` est aussi installé sur votre machine, vous pouvez utiliser l'accès réseau Oracle :
+## Notes techniques
 
-```bash
-sqlplus travel_admin/travel_admin@localhost:1521/XEPDB1 @sql/schema.sql
-```
-
-Avec Oracle XE dans un conteneur Podman, le flux complet est donc :
-
-```bash
-podman start oracle-xe
-podman exec -it oracle-xe sqlplus system/<mot_de_passe_system>@XEPDB1
-```
-
-Puis exécutez les commandes SQL de création de l'utilisateur ci-dessus. Ensuite, depuis la racine du projet, chargez le schéma avec :
-
-```bash
-podman exec -i oracle-xe sqlplus travel_admin/travel_admin@XEPDB1 < sql/schema.sql
-```
-
-### Réparer l'erreur ORA-01950
-
-Si le chargement du schéma échoue sur :
-
-```text
-ORA-01950: no privileges on tablespace 'USERS'
-```
-
-connectez-vous en `system` dans `XEPDB1` et redonnez le quota :
-
-```bash
-podman exec -it oracle-xe sqlplus system/<mot_de_passe_system>@XEPDB1
-```
-
-```sql
-ALTER USER travel_admin QUOTA UNLIMITED ON USERS;
-EXIT;
-```
-
-Si vous avez déjà lancé `sql/schema.sql` avant de corriger le quota, les tables et séquences existent peut-être déjà sans les données de démonstration. Le plus simple en développement est de recréer l'utilisateur :
-
-```bash
-podman exec -it oracle-xe sqlplus system/<mot_de_passe_system>@XEPDB1
-```
-
-```sql
-DROP USER travel_admin CASCADE;
-CREATE USER travel_admin IDENTIFIED BY travel_admin
-    DEFAULT TABLESPACE USERS
-    TEMPORARY TABLESPACE TEMP
-    QUOTA UNLIMITED ON USERS;
-GRANT CONNECT, RESOURCE TO travel_admin;
-EXIT;
-```
-
-Puis rechargez le schéma :
-
-```bash
-podman exec -i oracle-xe sqlplus travel_admin/travel_admin@XEPDB1 < sql/schema.sql
-```
-
-### Mettre à jour une base existante
-
-Si la base existe déjà et que vous ajoutez les images de destination, appliquez la migration :
-
-```bash
-podman exec -i oracle-xe sqlplus travel_admin/travel_admin@XEPDB1 < sql/migrations/001_add_destination_image_path.sql
-```
-
-## Configuration
-
-Par défaut, l'application utilise :
-
-- `ORACLE_USER=travel_admin`
-- `ORACLE_PASSWORD=travel_admin`
-- `ORACLE_DSN=localhost:1521/XEPDB1`
-
-Vous pouvez les surcharger :
-
-```bash
-export ORACLE_USER=travel_admin
-export ORACLE_PASSWORD=travel_admin
-export ORACLE_DSN=localhost:1521/XEPDB1
-```
-
-## Lancement
-
-```bash
-python main.py
-```
-
-Les dates doivent être saisies au format `YYYY-MM-DD`.
+- Les modèles Django (`travel/models.py`) sont déclarés en
+  `managed = False` : Django ne crée ni ne modifie jamais les tables
+  Oracle existantes. L'accès reste effectué par `python-oracledb` à
+  travers `TravelService`.
+- Le thème sombre de l'application desktop a été transposé en CSS dans
+  `static/travel/css/app.css`.
+- L'ancien code desktop (CustomTkinter) reste fonctionnel via
+  `python main.py` ; les deux versions partagent la même couche métier.

@@ -1,0 +1,67 @@
+{% extends "travel/base.html" %}
+{% block title %}SQL Oracle - Elite Concierge{% endblock %}
+{% block content %}
+<div class="flex flex-col gap-6">
+    <div>
+        <div class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Pédagogie</div>
+        <h2 class="mt-1 text-2xl font-bold text-ink inline-flex items-center gap-2"><i data-lucide="database" class="lucide-lg text-brand-400"></i> SQL Oracle</h2>
+        <p class="mt-1 text-sm text-ink-muted">Exemples pédagogiques et exécution directe de requêtes de lecture.</p>
+    </div>
+
+    <form method="get" class="rounded-2xl border border-surface-700 bg-surface-900 p-5">
+        <div class="flex flex-wrap items-center gap-3">
+            <label for="example-select" class="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-muted"><i data-lucide="book-open" class="lucide" style="width:14px;height:14px"></i> Catégorie</label>
+            <select name="example" id="example-select" onchange="this.form.submit()" class="form-select w-auto min-w-[14rem]">
+                {% for key in keys %}
+                    <option value="{{ key }}" {% if key == selected_key %}selected{% endif %}>{{ key }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+
+    {% if selected_sql %}
+        <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-900">
+            <header class="flex items-center justify-between border-b border-surface-700 px-5 py-3">
+                <h3 class="text-sm font-semibold text-ink inline-flex items-center gap-2"><i data-lucide="file-code" class="lucide text-brand-400"></i> Requête</h3>
+                <span class="rounded-full bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-bold text-violet-300">ORACLE</span>
+            </header>
+            <pre class="sql-code">{{ selected_sql }}</pre>
+        </section>
+    {% endif %}
+
+    {% if error %}
+        <div class="rounded-lg border border-rose-700/40 bg-rose-900/20 px-4 py-3 text-sm text-rose-200 flex items-start gap-2">
+            <i data-lucide="alert-circle" class="lucide text-rose-400 mt-0.5"></i>
+            <span>{{ error }}</span>
+        </div>
+    {% endif %}
+
+    {% if rows %}
+        <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-900">
+            <header class="flex items-center justify-between border-b border-surface-700 px-5 py-3">
+                <h3 class="text-sm font-semibold text-ink inline-flex items-center gap-2"><i data-lucide="table-2" class="lucide text-brand-400"></i> Résultat <span class="ml-2 rounded-full bg-surface-800 px-2 py-0.5 text-[10px] text-ink-muted">{{ rows|length }} ligne{{ rows|length|pluralize }}</span></h3>
+            </header>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-surface-700 text-left text-[11px] uppercase tracking-wider text-ink-subtle">
+                            {% for key in rows.0.keys %}
+                                <th class="px-5 py-3 font-semibold">{{ key|upper }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-700">
+                        {% for row in rows %}
+                            <tr class="hover:bg-surface-800/50 transition">
+                                {% for value in row.values %}
+                                    <td class="px-5 py-3.5 text-ink">{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

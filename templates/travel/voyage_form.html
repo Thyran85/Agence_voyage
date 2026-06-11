@@ -1,0 +1,70 @@
+{% extends "travel/base.html" %}
+{% block title %}{% if mode == "create" %}Nouveau voyage{% else %}Modifier voyage{% endif %} - Elite Concierge{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto lg:mx-0">
+    <a href="{% url 'travel:voyage_list' %}" class="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink transition">
+        <i data-lucide="arrow-left" class="lucide"></i>
+        Retour aux voyages
+    </a>
+    <h2 class="mt-3 text-2xl font-bold text-ink">{% if mode == "create" %}Nouveau voyage{% else %}Modifier le voyage <span class="text-brand-400">#{{ item.id_voyage }}</span>{% endif %}</h2>
+    <p class="mt-1 text-sm text-ink-muted">Saisissez les informations du voyage.</p>
+
+    <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        <section class="rounded-2xl border border-surface-700 bg-surface-900 p-6 space-y-5">
+            <div>
+                <h3 class="text-sm font-semibold text-ink flex items-center gap-2"><i data-lucide="map-pin" class="lucide text-brand-400"></i> Destination</h3>
+                <p class="text-xs text-ink-subtle">Sélectionnez la destination du voyage.</p>
+            </div>
+            <div>
+                <label for="{{ form.id_destination.id_for_label }}" class="form-label">Destination</label>
+                <select name="{{ form.id_destination.html_name }}" id="{{ form.id_destination.id_for_label }}" class="form-select">
+                    <option value="">— Choisir une destination —</option>
+                    {% for d in destinations %}
+                        <option value="{{ d.id_destination }}" {% if form.id_destination.value|stringformat:"s" == d.id_destination|stringformat:"s" %}selected{% endif %}>{{ d.pays }} — {{ d.ville }}</option>
+                    {% endfor %}
+                </select>
+                {% if form.id_destination.errors %}<div class="form-error">{{ form.id_destination.errors|join:", " }}</div>{% endif %}
+            </div>
+        </section>
+        <section class="rounded-2xl border border-surface-700 bg-surface-900 p-6 space-y-5">
+            <div>
+                <h3 class="text-sm font-semibold text-ink flex items-center gap-2"><i data-lucide="calendar" class="lucide text-brand-400"></i> Planification</h3>
+                <p class="text-xs text-ink-subtle">Dates, prix et capacité.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.date_depart.id_for_label }}" class="form-label">Date de départ</label>
+                    {{ form.date_depart }}
+                </div>
+                <div>
+                    <label for="{{ form.date_retour.id_for_label }}" class="form-label">Date de retour</label>
+                    {{ form.date_retour }}
+                </div>
+                <div>
+                    <label for="{{ form.prix.id_for_label }}" class="form-label">Prix (€)</label>
+                    {{ form.prix }}
+                </div>
+                <div>
+                    <label for="{{ form.places_disponibles.id_for_label }}" class="form-label">Places disponibles</label>
+                    {{ form.places_disponibles }}
+                </div>
+            </div>
+        </section>
+
+        {% if form.non_field_errors %}
+            <div class="rounded-lg border border-rose-700/40 bg-rose-900/20 px-4 py-3 text-sm text-rose-200 flex items-start gap-2">
+                <i data-lucide="alert-circle" class="lucide text-rose-400 mt-0.5"></i>
+                <span>{{ form.non_field_errors|join:", " }}</span>
+            </div>
+        {% endif %}
+
+        <div class="flex flex-wrap gap-2">
+            <button type="submit" class="btn-primary">
+                {% if mode == "create" %}<i data-lucide="plus" class="lucide text-white"></i> Créer le voyage{% else %}<i data-lucide="save" class="lucide text-white"></i> Enregistrer{% endif %}
+            </button>
+            <a href="{% url 'travel:voyage_list' %}" class="btn-secondary"><i data-lucide="x" class="lucide"></i> Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends "travel/base.html" %}
+{% load travel_extras %}
+{% block title %}{% if mode == "create" %}Nouvelle destination{% else %}Modifier destination{% endif %} - Elite Concierge{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto lg:mx-0">
+    <a href="{% url 'travel:destination_list' %}" class="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink transition">
+        <i data-lucide="arrow-left" class="lucide"></i>
+        Retour aux destinations
+    </a>
+    <h2 class="mt-3 text-2xl font-bold text-ink">{% if mode == "create" %}Nouvelle destination{% else %}Modifier la destination <span class="text-brand-400">#{{ item.id_destination }}</span>{% endif %}</h2>
+    <p class="mt-1 text-sm text-ink-muted">Définissez les informations principales de la destination.</p>
+
+    <form method="post" class="mt-6 space-y-4">
+        {% csrf_token %}
+        <section class="rounded-2xl border border-surface-700 bg-surface-900 p-6 space-y-5">
+            <div>
+                <h3 class="text-sm font-semibold text-ink flex items-center gap-2"><i data-lucide="map-pin" class="lucide text-brand-400"></i> Localisation</h3>
+                <p class="text-xs text-ink-subtle">Pays et ville de la destination.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.pays.id_for_label }}" class="form-label">Pays</label>
+                    {{ form.pays }}
+                </div>
+                <div>
+                    <label for="{{ form.ville.id_for_label }}" class="form-label">Ville</label>
+                    {{ form.ville }}
+                </div>
+            </div>
+        </section>
+        <section class="rounded-2xl border border-surface-700 bg-surface-900 p-6 space-y-5">
+            <div>
+                <h3 class="text-sm font-semibold text-ink flex items-center gap-2"><i data-lucide="euro" class="lucide text-brand-400"></i> Tarification &amp; média</h3>
+                <p class="text-xs text-ink-subtle">Prix de base et image mise en avant.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.prix_base.id_for_label }}" class="form-label">Prix de base (€)</label>
+                    {{ form.prix_base }}
+                </div>
+                <div>
+                    <label for="{{ form.image_path.id_for_label }}" class="form-label">Image (URL ou chemin)</label>
+                    {{ form.image_path }}
+                    <p class="mt-1 text-[11px] text-ink-subtle">Laisser vide pour utiliser l'image par défaut du pays. Accepte une URL (<code class="font-mono text-brand-400">https://...</code>) ou un chemin (<code class="font-mono text-brand-400">/static/travel/img/...</code>).</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-2">
+                        <label for="image-upload-input" class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-surface-700 bg-surface-800 px-2.5 py-1.5 text-xs font-semibold text-ink hover:border-surface-600 transition">
+                            <i data-lucide="upload" class="lucide" style="width:14px;height:14px"></i>
+                            Importer depuis le PC
+                        </label>
+                        <input type="file" id="image-upload-input" accept="image/jpeg,image/png,image/gif,image/webp,image/avif" class="hidden">
+                        <span id="image-upload-status" class="text-[11px] text-ink-subtle"></span>
+                    </div>
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                    {{ form.description }}
+                </div>
+            </div>
+            <div class="sm:col-span-2">
+                <div class="text-xs font-semibold uppercase tracking-wider text-ink-subtle">Aperçu</div>
+                <div class="mt-2 relative overflow-hidden rounded-xl border border-surface-700 bg-black h-44">
+                    <img id="destination-image-preview" src="{{ item|destination_image }}" alt="Aperçu" class="h-full w-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
+                    <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2">
+                        <div class="text-sm font-semibold text-white drop-shadow"><span id="preview-ville">{{ item.ville|default:form.ville.value|default:"Ville" }}</span><span class="ml-1 text-white/70 font-normal" id="preview-pays">{{ item.pays|default:form.pays.value|default:"Pays" }}</span></div>
+                        <div class="rounded-full bg-black/60 px-2 py-0.5 font-mono text-xs font-bold text-white ring-1 ring-white/20" id="preview-price">{{ item.prix_base|default:form.prix_base.value|default:"—" }} €</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {% if form.non_field_errors %}
+            <div class="rounded-lg border border-rose-700/40 bg-rose-900/20 px-4 py-3 text-sm text-rose-200 flex items-start gap-2">
+                <i data-lucide="alert-circle" class="lucide text-rose-400 mt-0.5"></i>
+                <span>{{ form.non_field_errors|join:", " }}</span>
+            </div>
+        {% endif %}
+
+        <div class="flex flex-wrap gap-2">
+            <button type="submit" class="btn-primary">
+                {% if mode == "create" %}<i data-lucide="plus" class="lucide text-white"></i> Créer la destination{% else %}<i data-lucide="save" class="lucide text-white"></i> Enregistrer{% endif %}
+            </button>
+            <a href="{% url 'travel:destination_list' %}" class="btn-secondary"><i data-lucide="x" class="lucide"></i> Annuler</a>
+        </div>
+    </form>
+</div>
+<script>
+(function () {
+    var pathInput = document.getElementById("{{ form.image_path.id_for_label }}");
+    var preview = document.getElementById("destination-image-preview");
+    var paysInput = document.getElementById("{{ form.pays.id_for_label }}");
+    var villeInput = document.getElementById("{{ form.ville.id_for_label }}");
+    var prixInput = document.getElementById("{{ form.prix_base.id_for_label }}");
+    var fileInput = document.getElementById("image-upload-input");
+    var status = document.getElementById("image-upload-status");
+    var previewVille = document.getElementById("preview-ville");
+    var previewPays = document.getElementById("preview-pays");
+    var previewPrice = document.getElementById("preview-price");
+    if (!pathInput || !preview) return;
+
+    var stock = {{ stock_images|safe }};
+    var fallback = "/static/travel/img/destinations/default.jpg";
+    var uploadUrl = "{% url 'travel:upload_image' %}";
+    var csrfToken = (document.querySelector("input[name=csrfmiddlewaretoken]") || {}).value || "";
+
+    function slugify(text) {
+        return (text || "").toLowerCase()
+            .replace(/[éèê]/g, "e").replace(/[àâ]/g, "a")
+            .replace(/[îï]/g, "i").replace(/[ôö]/g, "o")
+            .replace(/[ùû]/g, "u").replace(/ç/g, "c")
+            .replace(/[^a-z0-9]+/g, "");
+    }
+
+    function resolve() {
+        var raw = (pathInput.value || "").trim();
+        if (raw) {
+            var low = raw.toLowerCase();
+            if (low.startsWith("http://") || low.startsWith("https://") ||
+                low.startsWith("/static/") || low.startsWith("/media/")) {
+                return raw;
+            }
+            return "/static/travel/img/destinations/" + raw.replace(/^\/+/, "");
+        }
+        return stock[slugify(paysInput ? paysInput.value : "")] || fallback;
+    }
+
+    function refreshText() {
+        if (previewVille) previewVille.textContent = (villeInput && villeInput.value) || "Ville";
+        if (previewPays) previewPays.textContent = (paysInput && paysInput.value) || "Pays";
+        if (previewPrice) previewPrice.textContent = ((prixInput && prixInput.value) || "—") + " €";
+    }
+
+    pathInput.addEventListener("input", function () { preview.src = resolve(); });
+    if (paysInput) paysInput.addEventListener("input", function () { preview.src = resolve(); });
+    if (villeInput) villeInput.addEventListener("input", function () { preview.src = resolve(); });
+    if (prixInput) prixInput.addEventListener("input", refreshText);
+    if (paysInput) paysInput.addEventListener("input", refreshText);
+    if (villeInput) villeInput.addEventListener("input", refreshText);
+    refreshText();
+
+    if (fileInput) {
+        fileInput.addEventListener("change", function () {
+            var file = fileInput.files && fileInput.files[0];
+            if (!file) return;
+            status.textContent = "Envoi de \u00ab\u00a0" + file.name + "\u00a0\u00bb\u2026";
+            status.className = "text-[11px] text-brand-400";
+
+            // Instant local preview while uploading
+            var reader = new FileReader();
+            reader.onload = function (e) { preview.src = e.target.result; };
+            reader.readAsDataURL(file);
+
+            var data = new FormData();
+            data.append("file", file);
+            fetch(uploadUrl, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrfToken },
+                body: data,
+                credentials: "same-origin"
+            }).then(function (r) { return r.json(); })
+              .then(function (json) {
+                  if (json.ok) {
+                      pathInput.value = json.url;
+                      status.textContent = "Image import\u00e9e \u2713";
+                      status.className = "text-[11px] text-emerald-400";
+                  } else {
+                      status.textContent = json.error || "Erreur d'import.";
+                      status.className = "text-[11px] text-rose-400";
+                  }
+              })
+              .catch(function () {
+                  status.textContent = "Erreur r\u00e9seau.";
+                  status.className = "text-[11px] text-rose-400";
+              });
+        });
+    }
+})();
+</script>
+{% endblock %}

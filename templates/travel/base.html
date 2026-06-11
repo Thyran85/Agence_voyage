@@ -1,0 +1,204 @@
+{% load static %}<!doctype html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Elite Concierge{% endblock %}</title>
+    <script>
+      // Apply theme as early as possible to avoid flash
+      (function () {
+        try {
+          var saved = localStorage.getItem('theme');
+          if (saved === 'light' || saved === 'dark') {
+            document.documentElement.setAttribute('data-theme', saved);
+          } else {
+            var prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+            document.documentElement.setAttribute('data-theme', prefersLight ? 'light' : 'dark');
+          }
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'travel/css/app.css' %}" />
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full bg-body text-ink font-sans antialiased">
+<div class="flex min-h-screen">
+
+    <!-- Mobile sidebar overlay -->
+    <div id="mobile-overlay"
+         class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity lg:hidden"
+         onclick="document.getElementById('mobile-sidebar').classList.add('-translate-x-full'); this.classList.add('opacity-0','pointer-events-none');"></div>
+
+    <!-- Mobile sidebar drawer -->
+    <aside id="mobile-sidebar"
+           class="fixed inset-y-0 left-0 z-50 w-72 -translate-x-full transition-transform duration-200 ease-out flex flex-col border-r border-surface-700 bg-surface-900 lg:hidden">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-surface-700">
+            <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-700 grid place-items-center shadow-glow">
+                    <span class="text-white font-extrabold text-sm">EC</span>
+                </div>
+                <div>
+                    <div class="text-sm font-bold tracking-tight">Elite Concierge</div>
+                    <div class="text-[10px] uppercase tracking-[0.18em] text-ink-subtle">Back-office</div>
+                </div>
+            </div>
+            <button type="button" onclick="document.getElementById('mobile-sidebar').classList.add('-translate-x-full'); document.getElementById('mobile-overlay').classList.add('opacity-0','pointer-events-none');" class="h-9 w-9 grid place-items-center rounded-lg text-ink-muted hover:text-ink hover:bg-surface-800">
+                <i data-lucide="x" class="lucide-lg"></i>
+            </button>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            {% for item in nav_items %}
+                <a href="{{ item.url }}" onclick="document.getElementById('mobile-sidebar').classList.add('-translate-x-full'); document.getElementById('mobile-overlay').classList.add('opacity-0','pointer-events-none');" class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition
+                    {% if active_nav == item.name %}
+                        bg-brand-500/10 text-brand-300 ring-1 ring-brand-500/30
+                    {% else %}
+                        text-ink-muted hover:bg-surface-800 hover:text-ink
+                    {% endif %}">
+                    <i data-lucide="{{ item.icon }}" class="lucide-lg {% if active_nav == item.name %}text-brand-300{% else %}text-ink-subtle group-hover:text-ink-muted{% endif %}"></i>
+                    <span>{{ item.label }}</span>
+                </a>
+            {% endfor %}
+        </nav>
+        <div class="p-4 border-t border-surface-700">
+            <a href="{% url 'travel:reservation_create' %}" onclick="document.getElementById('mobile-sidebar').classList.add('-translate-x-full'); document.getElementById('mobile-overlay').classList.add('opacity-0','pointer-events-none');" class="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-soft">
+                <i data-lucide="plus" class="lucide-lg text-white"></i> Nouvelle réservation
+            </a>
+        </div>
+    </aside>
+
+    <!-- Desktop sidebar -->
+    <aside class="hidden lg:flex w-64 shrink-0 flex-col border-r border-surface-700 bg-surface-900/80 backdrop-blur">
+        <div class="px-6 pt-6 pb-2">
+            <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-xl bg-gradient-to-br from-brand-400 to-brand-700 grid place-items-center shadow-glow">
+                    <span class="text-white font-extrabold text-sm">EC</span>
+                </div>
+                <div>
+                    <div class="text-sm font-bold tracking-tight">Elite Concierge</div>
+                    <div class="text-[10px] uppercase tracking-[0.18em] text-ink-subtle">Back-office</div>
+                </div>
+            </div>
+        </div>
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            {% for item in nav_items %}
+                <a href="{{ item.url }}" class="group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition
+                    {% if active_nav == item.name %}
+                        bg-brand-500/10 text-brand-300 ring-1 ring-brand-500/30
+                    {% else %}
+                        text-ink-muted hover:bg-surface-800 hover:text-ink
+                    {% endif %}">
+                    <i data-lucide="{{ item.icon }}" class="lucide-lg {% if active_nav == item.name %}text-brand-300{% else %}text-ink-subtle group-hover:text-ink-muted{% endif %}"></i>
+                    <span>{{ item.label }}</span>
+                </a>
+            {% endfor %}
+        </nav>
+        <div class="p-4 border-t border-surface-700">
+            <a href="{% url 'travel:reservation_create' %}" class="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-soft hover:from-brand-400 hover:to-brand-600 transition">
+                <i data-lucide="plus" class="lucide-lg text-white"></i> Nouvelle réservation
+            </a>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="sticky top-0 z-30 border-b border-surface-700 bg-surface-900/80 backdrop-blur">
+            <div class="flex items-center gap-2 sm:gap-4 px-4 sm:px-6 py-3">
+                <button type="button"
+                        onclick="document.getElementById('mobile-sidebar').classList.remove('-translate-x-full'); document.getElementById('mobile-overlay').classList.remove('opacity-0','pointer-events-none');"
+                        class="lg:hidden h-9 w-9 grid place-items-center rounded-lg border border-surface-700 bg-surface-800 text-ink-muted hover:text-ink">
+                    <i data-lucide="menu" class="lucide-lg"></i>
+                </button>
+                <div class="min-w-0 flex-1">
+                    <div class="hidden sm:block text-[11px] uppercase tracking-[0.18em] text-ink-subtle">Elite Concierge</div>
+                    <h1 class="text-base sm:text-lg font-semibold text-ink truncate">{{ page_title }}</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="theme-toggle"
+                            class="h-9 w-9 grid place-items-center rounded-lg border border-surface-700 bg-surface-800 text-ink-muted hover:text-ink hover:border-surface-600 transition"
+                            title="Changer de thème" aria-label="Changer de thème">
+                        <i data-lucide="sun" class="lucide hidden dark-sun"></i>
+                        <i data-lucide="moon" class="lucide dark-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        {% if messages %}
+            <div class="px-4 sm:px-6 pt-4 space-y-2">
+                {% for message in messages %}
+                    <div class="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm
+                        {% if message.tags == 'success' %}border-emerald-700/40 bg-emerald-900/20 text-emerald-200
+                        {% elif message.tags == 'error' %}border-rose-700/40 bg-rose-900/20 text-rose-200
+                        {% elif message.tags == 'warning' %}border-amber-700/40 bg-amber-900/20 text-amber-200
+                        {% else %}border-surface-700 bg-surface-800 text-ink{% endif %}">
+                        <i data-lucide="
+                            {% if message.tags == 'success' %}check-circle
+                            {% elif message.tags == 'error' %}x-circle
+                            {% elif message.tags == 'warning' %}alert-triangle
+                            {% else %}info{% endif %}" class="lucide-lg mt-0.5 shrink-0"></i>
+                        <span class="flex-1">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <main class="flex-1 px-4 sm:px-6 py-6">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+  (function () {
+    const STORAGE_KEY = 'theme';
+
+    function getTheme() {
+      return document.documentElement.getAttribute('data-theme') || 'dark';
+    }
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      try { localStorage.setItem(STORAGE_KEY, theme); } catch (e) {}
+      updateToggleIcon(theme);
+    }
+    function updateToggleIcon(theme) {
+      const btn = document.getElementById('theme-toggle');
+      if (!btn) return;
+      btn.querySelectorAll('[data-lucide]').forEach(el => el.classList.add('hidden'));
+      const want = theme === 'dark' ? 'sun' : 'moon';
+      const target = btn.querySelector(`[data-lucide="${want}"]`);
+      if (target) target.classList.remove('hidden');
+    }
+    function bindToggle() {
+      const btn = document.getElementById('theme-toggle');
+      if (!btn) return;
+      btn.addEventListener('click', () => {
+        const next = getTheme() === 'dark' ? 'light' : 'dark';
+        setTheme(next);
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons({ attrs: {}, nameAttr: 'data-lucide' });
+        }
+      });
+      updateToggleIcon(getTheme());
+    }
+
+    function init() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+      bindToggle();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

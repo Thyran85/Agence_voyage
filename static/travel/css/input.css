@@ -1,0 +1,225 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================== */
+/* THEME VARIABLES - dark (default) + light via [data-theme] attr */
+/* ============================================================== */
+:root,
+[data-theme="dark"] {
+  /* Brand: cyan/teal */
+  --brand-50:  #ecfeff;
+  --brand-100: #cffafe;
+  --brand-200: #a5f3fc;
+  --brand-300: #67e8f9;
+  --brand-400: #3ccadb;
+  --brand-500: #22d3ee;
+  --brand-600: #06b6d4;
+  --brand-700: #0e7490;
+  --brand-800: #155e75;
+  --brand-900: #164e63;
+
+  /* Slate-like surface, dark scale */
+  --surface-50:  #f8fafc;
+  --surface-100: #f1f5f9;
+  --surface-200: #e2e8f0;
+  --surface-300: #cbd5e1;
+  --surface-400: #94a3b8;
+  --surface-500: #64748b;
+  --surface-600: #475569;
+  --surface-700: #334155;
+  --surface-800: #1e293b;
+  --surface-900: #0f172a;
+  --surface-950: #020617;
+
+  /* Text and chrome */
+  --bg-body:    #020617;
+  --ink:        #f1f5f9;
+  --ink-muted:  #94a3b8;
+  --ink-subtle: #64748b;
+  --border:     #334155;
+  --ring:       #22d3ee;
+
+  --shadow-soft: 0 10px 30px -10px rgba(34, 211, 238, 0.25);
+  --shadow-glow: 0 0 0 1px rgba(34, 211, 238, 0.3), 0 8px 24px -8px rgba(34, 211, 238, 0.4);
+
+  /* Code block - dark theme */
+  --sql-code-bg: #020617;
+  --sql-code-fg: #67e8f9;          /* brand-300 cyan, readable on near-black */
+  --sql-code-keyword: #f0abfc;     /* pink/fuchsia accent for keywords */
+  --sql-code-string: #fde68a;      /* amber for strings */
+  --sql-code-number: #fbbf24;      /* amber for numbers */
+  --sql-code-comment: #64748b;     /* slate-500 muted */
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  /* Brand stays teal/cyan (works well on both) */
+  --brand-50:  #ecfeff;
+  --brand-100: #cffafe;
+  --brand-200: #a5f3fc;
+  --brand-300: #67e8f9;
+  --brand-400: #22d3ee;
+  --brand-500: #06b6d4;
+  --brand-600: #0891b2;
+  --brand-700: #0e7490;
+  --brand-800: #155e75;
+  --brand-900: #164e63;
+
+  /* Light surface scale (slate tones flipped) */
+  --surface-50:  #f8fafc;
+  --surface-100: #f1f5f9;
+  --surface-200: #e2e8f0;
+  --surface-300: #cbd5e1;
+  --surface-400: #94a3b8;
+  --surface-500: #64748b;
+  --surface-600: #475569;
+  --surface-700: #cbd5e1;
+  --surface-800: #f1f5f9;
+  --surface-900: #ffffff;
+  --surface-950: #f8fafc;
+
+  --bg-body:    #f1f5f9;
+  --ink:        #0f172a;
+  --ink-muted:  #475569;
+  --ink-subtle: #94a3b8;
+  --border:     #cbd5e1;
+  --ring:       #06b6d4;
+
+  --shadow-soft: 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 0 0 1px rgba(6, 182, 212, 0.4), 0 6px 18px -6px rgba(6, 182, 212, 0.25);
+
+  /* Code block - light theme: slate-50 bg, brand-800 cyan fg */
+  --sql-code-bg: #f1f5f9;          /* slate-100, slight contrast vs surface-900 white card */
+  --sql-code-fg: #155e75;          /* brand-800 dark cyan, readable on light */
+  --sql-code-keyword: #7e22ce;     /* purple-700 for keywords */
+  --sql-code-string: #b45309;      /* amber-700 for strings */
+  --sql-code-number: #c2410c;      /* orange-700 for numbers */
+  --sql-code-comment: #64748b;     /* slate-500 muted */
+
+  color-scheme: light;
+}
+
+@layer base {
+  body {
+    @apply bg-body text-ink font-sans antialiased transition-colors duration-200;
+  }
+  h1, h2, h3, h4, h5, h6 { @apply text-ink; }
+}
+
+@layer components {
+  .form-input,
+  .form-textarea,
+  .form-select {
+    @apply w-full rounded-lg border border-surface-700 bg-surface-900 px-3 py-2 text-sm text-ink
+           placeholder:text-ink-subtle focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none
+           transition;
+  }
+  .form-select {
+    @apply pr-9 bg-no-repeat bg-right;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-position: right 0.65rem center;
+    background-size: 1rem;
+  }
+  [data-theme="light"] .form-select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+  }
+  .form-label {
+    @apply block text-[11px] font-semibold uppercase tracking-wider text-ink-muted mb-1.5;
+  }
+  .form-error {
+    @apply mt-1 text-xs text-rose-500;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-brand-500 to-brand-700 text-white shadow-soft
+           hover:from-brand-400 hover:to-brand-600;
+  }
+  .btn-secondary {
+    @apply btn border border-surface-700 bg-surface-800 text-ink hover:border-surface-600 hover:bg-surface-700;
+  }
+  .btn-danger {
+    @apply btn bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500/20;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider;
+  }
+  .badge-success { @apply badge bg-emerald-500/10 text-emerald-500; }
+  .badge-warning { @apply badge bg-amber-500/10 text-amber-500; }
+  .badge-danger  { @apply badge bg-rose-500/10 text-rose-500; }
+  .badge-info    { @apply badge bg-brand-500/10 text-brand-600; }
+  .badge-muted   { @apply badge bg-surface-800 text-ink-muted; }
+
+  /* Code block (SQL queries) - readable in both themes */
+  .sql-code {
+    @apply rounded-lg border border-surface-700 p-5 text-xs font-mono overflow-x-auto leading-relaxed;
+    background-color: var(--sql-code-bg);
+    color: var(--sql-code-fg);
+  }
+  .sql-keyword  { color: var(--sql-code-keyword); font-weight: 600; }
+  .sql-string   { color: var(--sql-code-string); }
+  .sql-number   { color: var(--sql-code-number); }
+  .sql-comment  { color: var(--sql-code-comment); font-style: italic; }
+
+  /* Destination images: subtle zoom on hover for cards */
+  .dest-card-image {
+    @apply transition-transform duration-500;
+  }
+  .dest-card:hover .dest-card-image {
+    @apply scale-105;
+  }
+
+  /* Lucide icons - default sizing */
+  [data-lucide] {
+    @apply w-4 h-4 inline-block align-middle shrink-0;
+  }
+  .icon-sm [data-lucide],
+  svg.lucide {
+    @apply w-3.5 h-3.5;
+  }
+  svg.lucide-lg {
+    @apply w-5 h-5;
+  }
+}
+
+@layer utilities {
+  .bg-radial-glow {
+    background: radial-gradient(ellipse at top left, rgba(60,202,219,0.18), transparent 60%),
+                radial-gradient(ellipse at bottom right, rgba(168,85,247,0.12), transparent 55%);
+  }
+  [data-theme="light"] .bg-radial-glow {
+    background: radial-gradient(ellipse at top left, rgba(34, 211, 238, 0.15), transparent 60%),
+                radial-gradient(ellipse at bottom right, rgba(168, 85, 247, 0.10), transparent 55%);
+  }
+  .bg-radial-amber {
+    background: radial-gradient(ellipse at top right, rgba(251,191,36,0.18), transparent 60%),
+                radial-gradient(ellipse at bottom left, rgba(244,114,182,0.14), transparent 55%);
+  }
+  [data-theme="light"] .bg-radial-amber {
+    background: radial-gradient(ellipse at top right, rgba(251, 191, 36, 0.18), transparent 60%),
+                radial-gradient(ellipse at bottom left, rgba(244, 114, 182, 0.12), transparent 55%);
+  }
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--surface-500);
+  }
+}

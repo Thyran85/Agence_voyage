@@ -244,9 +244,11 @@ class TravelService:
         try:
             destination_top = self.database.fetch_one(
                 """
-                SELECT id_destination AS id, image_path, label, total FROM (
+                SELECT id_destination AS id, image_path, pays, ville, label, total FROM (
                     SELECT d.id_destination,
                            d.image_path,
+                           d.pays,
+                           d.ville,
                            d.pays || ' - ' || d.ville AS label,
                            COUNT(*) AS total
                     FROM reservations r
@@ -260,8 +262,10 @@ class TravelService:
         except Exception:
             tmp = self.database.fetch_one(
                 """
-                SELECT label, total FROM (
-                    SELECT d.pays || ' - ' || d.ville AS label,
+                SELECT pays, ville, label, total FROM (
+                    SELECT d.pays,
+                           d.ville,
+                           d.pays || ' - ' || d.ville AS label,
                            COUNT(*) AS total
                     FROM reservations r
                     INNER JOIN voyages v ON v.id_voyage = r.id_voyage
@@ -272,7 +276,7 @@ class TravelService:
                 """
             )
             if tmp:
-                destination_top = {"label": tmp.get("label"), "total": tmp.get("total"), "image_path": None, "id": None}
+                destination_top = {"label": tmp.get("label"), "total": tmp.get("total"), "image_path": None, "id": None, "pays": tmp.get("pays"), "ville": tmp.get("ville")}
             else:
                 destination_top = None
 
@@ -280,16 +284,18 @@ class TravelService:
         try:
             voyage_top = self.database.fetch_one(
                 """
-                SELECT id_voyage AS id, v.id_destination, d.image_path, label, total FROM (
+                SELECT id_voyage AS id, v.id_destination, d.image_path, d.pays, d.ville, label, total FROM (
                     SELECT v.id_voyage,
                            v.id_destination,
                            d.image_path,
+                           d.pays,
+                           d.ville,
                            'Voyage #' || v.id_voyage || ' - ' || d.ville AS label,
                            COUNT(*) AS total
                     FROM reservations r
                     INNER JOIN voyages v ON v.id_voyage = r.id_voyage
                     INNER JOIN destinations d ON d.id_destination = v.id_destination
-                    GROUP BY v.id_voyage, v.id_destination, d.image_path, d.ville
+                    GROUP BY v.id_voyage, v.id_destination, d.image_path, d.pays, d.ville
                     ORDER BY total DESC
                 ) WHERE ROWNUM = 1
                 """
@@ -297,19 +303,21 @@ class TravelService:
         except Exception:
             tmp = self.database.fetch_one(
                 """
-                SELECT label, total FROM (
-                    SELECT 'Voyage #' || v.id_voyage || ' - ' || d.ville AS label,
+                SELECT pays, ville, label, total FROM (
+                    SELECT d.pays,
+                           d.ville,
+                           'Voyage #' || v.id_voyage || ' - ' || d.ville AS label,
                            COUNT(*) AS total
                     FROM reservations r
                     INNER JOIN voyages v ON v.id_voyage = r.id_voyage
                     INNER JOIN destinations d ON d.id_destination = v.id_destination
-                    GROUP BY v.id_voyage, d.ville
+                    GROUP BY v.id_voyage, d.pays, d.ville
                     ORDER BY total DESC
                 ) WHERE ROWNUM = 1
                 """
             )
             if tmp:
-                voyage_top = {"label": tmp.get("label"), "total": tmp.get("total"), "image_path": None, "id": None}
+                voyage_top = {"label": tmp.get("label"), "total": tmp.get("total"), "image_path": None, "id": None, "pays": tmp.get("pays"), "ville": tmp.get("ville")}
             else:
                 voyage_top = None
 

@@ -1,0 +1,14 @@
+{
+  "name": "oracleproject-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web app Django + Tailwind CSS + Lucide icons",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/travel/css/input.css -o ./static/travel/css/app.css --minify",
+    "watch:css": "tailwindcss -i ./static/travel/css/input.css -o ./static/travel/css/app.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.11",
+    "tailwindcss": "^3.4.19"
+  }
+}

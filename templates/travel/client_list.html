@@ -1,0 +1,90 @@
+{% extends "travel/_list_base.html" %}
+{% block title %}Clients - Elite Concierge{% endblock %}
+{% block list_title %}Gestion des clients{% endblock %}
+{% block list_subtitle %}Consulter et modifier la base de données clients.{% endblock %}
+{% block list_actions %}
+    <a href="{% url 'travel:client_create' %}" class="btn-primary"><i data-lucide="user-plus" class="lucide text-white"></i> Nouveau client</a>
+{% endblock %}
+{% block search_options %}
+    <option value="nom" {% if search_by == "nom" %}selected{% endif %}>Nom</option>
+    <option value="prenom" {% if search_by == "prenom" %}selected{% endif %}>Prénom</option>
+    <option value="telephone" {% if search_by == "telephone" %}selected{% endif %}>Téléphone</option>
+    <option value="email" {% if search_by == "email" %}selected{% endif %}>Email</option>
+{% endblock %}
+{% block sort_options %}
+    <option value="nom" {% if sort_by == "nom" %}selected{% endif %}>Nom</option>
+    <option value="prenom" {% if sort_by == "prenom" %}selected{% endif %}>Prénom</option>
+{% endblock %}
+{% block grid_header %}
+    <th class="px-5 py-3 font-semibold w-16">ID</th>
+    <th class="px-5 py-3 font-semibold">Client</th>
+    <th class="px-5 py-3 font-semibold">Contact</th>
+    <th class="px-5 py-3 font-semibold hidden lg:table-cell">Adresse</th>
+    <th class="px-5 py-3 font-semibold text-right">Actions</th>
+{% endblock %}
+{% block grid_body %}
+    {% for client in clients %}
+        <tr class="hover:bg-surface-800/50 transition">
+            <td class="px-5 py-3.5 font-mono text-xs text-ink-subtle">#{{ client.id_client }}</td>
+            <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-violet-500 grid place-items-center text-xs font-bold text-white">{{ client.prenom.0 }}{{ client.nom.0 }}</div>
+                    <div>
+                        <div class="font-semibold text-ink">{{ client.nom }} {{ client.prenom }}</div>
+                        <div class="text-xs text-ink-subtle lg:hidden">{{ client.email|default:"" }}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-5 py-3.5">
+                <div class="text-ink">{{ client.telephone|default:"—" }}</div>
+                <div class="text-xs text-ink-subtle">{{ client.email|default:"" }}</div>
+            </td>
+            <td class="px-5 py-3.5 text-ink-muted text-sm max-w-xs truncate hidden lg:table-cell">{{ client.adresse|default:"—" }}</td>
+            <td class="px-5 py-3.5">
+                <div class="flex justify-end gap-2">
+                    <a href="{% url 'travel:client_update' client.id_client %}" class="inline-flex items-center gap-1 rounded-md border border-surface-700 bg-surface-800 px-2.5 py-1.5 text-xs font-semibold text-ink hover:border-surface-600 hover:text-ink transition"><i data-lucide="pencil" class="lucide" style="width:12px;height:12px"></i> Modifier</a>
+                    <form method="post" action="{% url 'travel:client_delete' client.id_client %}" class="inline" onsubmit="return confirm('Supprimer ce client ?');">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-rose-700/40 bg-rose-500/10 px-2.5 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 transition"><i data-lucide="trash-2" class="lucide" style="width:12px;height:12px"></i> Supprimer</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="5" class="px-5 py-12 text-center text-sm text-ink-subtle">Aucun client trouvé.</td></tr>
+    {% endfor %}
+{% endblock %}
+{% block cards_body %}
+    {% for client in clients %}
+        <div class="rounded-xl border border-surface-700 bg-surface-800/40 p-4">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-violet-500 grid place-items-center text-xs font-bold text-white">{{ client.prenom.0 }}{{ client.nom.0 }}</div>
+                    <div class="min-w-0">
+                        <div class="font-semibold text-ink truncate">{{ client.nom }} {{ client.prenom }}</div>
+                        <div class="text-xs text-ink-subtle">#{{ client.id_client }}</div>
+                    </div>
+                </div>
+                <div class="flex gap-1.5 shrink-0">
+                    <a href="{% url 'travel:client_update' client.id_client %}" class="inline-flex h-8 w-8 grid place-items-center rounded-md border border-surface-700 bg-surface-900 text-ink-muted hover:text-ink transition" title="Modifier">
+                        <i data-lucide="pencil" class="lucide"></i>
+                    </a>
+                    <form method="post" action="{% url 'travel:client_delete' client.id_client %}" class="inline" onsubmit="return confirm('Supprimer ce client ?');">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex h-8 w-8 grid place-items-center rounded-md border border-rose-700/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition" title="Supprimer">
+                            <i data-lucide="trash-2" class="lucide"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+                <dt class="text-ink-subtle">Téléphone</dt>
+                <dd class="text-ink">{{ client.telephone|default:"—" }}</dd>
+                <dt class="text-ink-subtle">Email</dt>
+                <dd class="text-ink truncate">{{ client.email|default:"—" }}</dd>
+            </dl>
+        </div>
+    {% empty %}
+        <div class="col-span-1 sm:col-span-2 rounded-xl border border-surface-700 bg-surface-800/40 p-8 text-center text-sm text-ink-subtle">Aucun client trouvé.</div>
+    {% endfor %}
+{% endblock %}

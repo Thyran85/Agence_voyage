@@ -1,0 +1,114 @@
+{% extends "travel/base.html" %}
+{% block title %}Filtres - Elite Concierge{% endblock %}
+{% block content %}
+<div class="flex flex-col gap-6">
+    <div>
+        <div class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Analyse</div>
+        <h2 class="mt-1 text-2xl font-bold text-ink">Filtres multicritères</h2>
+        <p class="mt-1 text-sm text-ink-muted">Explorer les voyages et réservations avec aperçu SQL généré.</p>
+    </div>
+
+    <div class="inline-flex w-fit rounded-xl border border-surface-700 bg-surface-900 p-1">
+        <a href="?mode=voyages{% if request.GET.apply %}&apply=1{% endif %}" class="inline-flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-semibold transition {% if mode == 'voyages' %}bg-gradient-to-r from-brand-500 to-brand-700 text-white shadow-soft{% else %}text-ink-muted hover:text-ink{% endif %}"><i data-lucide="plane" class="lucide" style="width:14px;height:14px"></i> Voyages</a>
+        <a href="?mode=reservations{% if request.GET.apply %}&apply=1{% endif %}" class="inline-flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-semibold transition {% if mode == 'reservations' %}bg-gradient-to-r from-brand-500 to-brand-700 text-white shadow-soft{% else %}text-ink-muted hover:text-ink{% endif %}"><i data-lucide="calendar-check" class="lucide" style="width:14px;height:14px"></i> Réservations</a>
+    </div>
+
+    <form method="get" class="rounded-2xl border border-surface-700 bg-surface-900 p-4 sm:p-6">
+        <input type="hidden" name="mode" value="{{ mode }}" />
+        <input type="hidden" name="apply" value="1" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% if mode == "voyages" %}
+                <div>
+                    <label class="form-label">Pays</label>
+                    {{ voyage_form.pays }}
+                </div>
+                <div>
+                    <label class="form-label">Ville</label>
+                    {{ voyage_form.ville }}
+                </div>
+                <div>
+                    <label class="form-label">Date de départ (min)</label>
+                    {{ voyage_form.date_depart }}
+                </div>
+                <div>
+                    <label class="form-label">Date de retour (max)</label>
+                    {{ voyage_form.date_retour }}
+                </div>
+                <div>
+                    <label class="form-label">Prix min</label>
+                    {{ voyage_form.prix_min }}
+                </div>
+                <div>
+                    <label class="form-label">Prix max</label>
+                    {{ voyage_form.prix_max }}
+                </div>
+            {% else %}
+                <div>
+                    <label class="form-label">Client</label>
+                    {{ reservation_form.client }}
+                </div>
+                <div>
+                    <label class="form-label">Voyage</label>
+                    {{ reservation_form.voyage }}
+                </div>
+                <div>
+                    <label class="form-label">Date de réservation</label>
+                    {{ reservation_form.date_reservation }}
+                </div>
+                <div>
+                    <label class="form-label">Montant min</label>
+                    {{ reservation_form.montant_min }}
+                </div>
+                <div>
+                    <label class="form-label">Montant max</label>
+                    {{ reservation_form.montant_max }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="mt-6 flex flex-wrap gap-2">
+            <button type="submit" class="btn-primary"><i data-lucide="funnel" class="lucide text-white"></i> Filtrer</button>
+            <a href="?mode={{ mode }}" class="btn-secondary"><i data-lucide="rotate-ccw" class="lucide"></i> Réinitialiser</a>
+        </div>
+    </form>
+
+    {% if sql_text %}
+        <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-900">
+            <header class="flex items-center justify-between border-b border-surface-700 px-5 py-3">
+                <h3 class="text-sm font-semibold text-ink inline-flex items-center gap-2"><i data-lucide="database" class="lucide text-brand-400"></i> Requête SQL générée</h3>
+                <span class="rounded-full bg-brand-500/10 px-2.5 py-0.5 text-[10px] font-bold text-brand-300">SQL</span>
+            </header>
+            <pre class="sql-code">{{ sql_text }}</pre>
+        </section>
+    {% endif %}
+
+    {% if rows %}
+        <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-900">
+            <header class="flex items-center justify-between border-b border-surface-700 px-5 py-3">
+                <h3 class="text-sm font-semibold text-ink inline-flex items-center gap-2"><i data-lucide="table-2" class="lucide text-brand-400"></i> Résultats <span class="ml-2 rounded-full bg-surface-800 px-2 py-0.5 text-[10px] text-ink-muted">{{ rows|length }}</span></h3>
+            </header>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-surface-700 text-left text-[11px] uppercase tracking-wider text-ink-subtle">
+                            {% for key in rows.0.keys %}
+                                <th class="px-5 py-3 font-semibold">{{ key|upper }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-700">
+                        {% for row in rows %}
+                            <tr class="hover:bg-surface-800/50 transition">
+                                {% for value in row.values %}
+                                    <td class="px-5 py-3.5 text-ink">{{ value }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% elif request.GET.apply %}
+        <section class="rounded-2xl border border-surface-700 bg-surface-900 p-10 text-center text-sm text-ink-subtle inline-flex items-center justify-center gap-2"><i data-lucide="search-x" class="lucide"></i> Aucun résultat pour les critères choisis.</section>
+    {% endif %}
+</div>
+{% endblock %}

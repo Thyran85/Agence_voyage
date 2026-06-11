@@ -1,0 +1,113 @@
+{% extends "travel/_list_base.html" %}
+{% load travel_extras %}
+{% block title %}Voyages - Elite Concierge{% endblock %}
+{% block list_title %}Gestion des voyages{% endblock %}
+{% block list_subtitle %}Planifier les départs, retours, tarifs et disponibilités.{% endblock %}
+{% block list_actions %}
+    <a href="{% url 'travel:voyage_create' %}" class="btn-primary"><i data-lucide="plus" class="lucide text-white"></i> Nouveau voyage</a>
+{% endblock %}
+{% block search_options %}
+    <option value="destination" {% if search_by == "destination" %}selected{% endif %}>Destination</option>
+    <option value="date_depart" {% if search_by == "date_depart" %}selected{% endif %}>Date de départ</option>
+    <option value="prix" {% if search_by == "prix" %}selected{% endif %}>Prix exact</option>
+{% endblock %}
+{% block sort_options %}
+    <option value="prix" {% if sort_by == "prix" %}selected{% endif %}>Prix</option>
+    <option value="date_depart" {% if sort_by == "date_depart" %}selected{% endif %}>Date de départ</option>
+{% endblock %}
+{% block grid_header %}
+    <th class="px-5 py-3 font-semibold w-16">ID</th>
+    <th class="px-5 py-3 font-semibold">Destination</th>
+    <th class="px-5 py-3 font-semibold hidden md:table-cell">Période</th>
+    <th class="px-5 py-3 font-semibold text-right">Prix</th>
+    <th class="px-5 py-3 font-semibold text-right">Places</th>
+    <th class="px-5 py-3 font-semibold text-right">Actions</th>
+{% endblock %}
+{% block grid_body %}
+    {% for voyage in voyages %}
+        <tr class="hover:bg-surface-800/50 transition">
+            <td class="px-5 py-3.5 font-mono text-xs text-ink-subtle">#{{ voyage.id_voyage }}</td>
+            <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                    <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-400 to-violet-700 grid place-items-center text-white font-bold text-xs shadow-soft">{{ voyage.ville|slice:":2"|upper }}</div>
+                    <div>
+                        <div class="font-semibold text-ink">{{ voyage.ville }}</div>
+                        <div class="text-xs text-ink-subtle">{{ voyage.pays|default:"" }}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="px-5 py-3.5 hidden md:table-cell">
+                <div class="inline-flex items-center gap-1.5 font-mono text-xs text-ink">{{ voyage.date_depart|short_date }} <i data-lucide="arrow-right" class="lucide" style="width:11px;height:11px"></i> {{ voyage.date_retour|short_date }}</div>
+            </td>
+            <td class="px-5 py-3.5 text-right">
+                <div class="inline-flex items-baseline gap-1">
+                    <span class="font-mono text-base font-bold text-ink">{{ voyage.prix }}</span>
+                    <span class="text-xs text-ink-subtle">€</span>
+                </div>
+            </td>
+            <td class="px-5 py-3.5 text-right">
+                {% if voyage.places_disponibles > 10 %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">{{ voyage.places_disponibles }}</span>
+                {% elif voyage.places_disponibles > 0 %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-300">{{ voyage.places_disponibles }}</span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[11px] font-semibold text-rose-300">Complet</span>
+                {% endif %}
+            </td>
+            <td class="px-5 py-3.5">
+                <div class="flex justify-end gap-2">
+                    <a href="{% url 'travel:voyage_update' voyage.id_voyage %}" class="inline-flex items-center gap-1 rounded-md border border-surface-700 bg-surface-800 px-2.5 py-1.5 text-xs font-semibold text-ink hover:border-surface-600 hover:text-ink transition"><i data-lucide="pencil" class="lucide" style="width:12px;height:12px"></i> Modifier</a>
+                    <form method="post" action="{% url 'travel:voyage_delete' voyage.id_voyage %}" class="inline" onsubmit="return confirm('Supprimer ce voyage ?');">
+                        {% csrf_token %}
+                        <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-rose-700/40 bg-rose-500/10 px-2.5 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 transition"><i data-lucide="trash-2" class="lucide" style="width:12px;height:12px"></i> Supprimer</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="6" class="px-5 py-12 text-center text-sm text-ink-subtle">Aucun voyage trouvé.</td></tr>
+    {% endfor %}
+{% endblock %}
+{% block cards_body %}
+    {% for voyage in voyages %}
+        <div class="rounded-xl border border-surface-700 bg-surface-800/40 p-4">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="h-10 w-10 shrink-0 rounded-xl bg-gradient-to-br from-violet-400 to-violet-700 grid place-items-center text-white font-bold text-xs shadow-soft">{{ voyage.ville|slice:":2"|upper }}</div>
+                    <div class="min-w-0">
+                        <div class="font-semibold text-ink truncate">{{ voyage.ville }}</div>
+                        <div class="text-xs text-ink-subtle truncate">{{ voyage.pays|default:"" }} · #{{ voyage.id_voyage }}</div>
+                    </div>
+                </div>
+                <div class="text-right shrink-0">
+                    <div class="font-mono text-lg font-bold text-ink">{{ voyage.prix }}<span class="text-xs text-ink-subtle"> €</span></div>
+                </div>
+            </div>
+            <dl class="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+                <dt class="text-ink-subtle">Départ</dt>
+                <dd class="font-mono text-ink">{{ voyage.date_depart|short_date }}</dd>
+                <dt class="text-ink-subtle">Retour</dt>
+                <dd class="font-mono text-ink">{{ voyage.date_retour|short_date }}</dd>
+                <dt class="text-ink-subtle">Places</dt>
+                <dd>
+                    {% if voyage.places_disponibles > 10 %}
+                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-300">{{ voyage.places_disponibles }}</span>
+                    {% elif voyage.places_disponibles > 0 %}
+                        <span class="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-300">{{ voyage.places_disponibles }}</span>
+                    {% else %}
+                        <span class="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-0.5 text-[11px] font-semibold text-rose-300">Complet</span>
+                    {% endif %}
+                </dd>
+            </dl>
+            <div class="mt-3 flex justify-end gap-1.5">
+                <a href="{% url 'travel:voyage_update' voyage.id_voyage %}" class="inline-flex items-center gap-1 rounded-md border border-surface-700 bg-surface-900 px-3 py-1.5 text-xs font-semibold text-ink"><i data-lucide="pencil" class="lucide" style="width:12px;height:12px"></i> Modifier</a>
+                <form method="post" action="{% url 'travel:voyage_delete' voyage.id_voyage %}" class="inline" onsubmit="return confirm('Supprimer ce voyage ?');">
+                    {% csrf_token %}
+                    <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-rose-700/40 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300"><i data-lucide="trash-2" class="lucide" style="width:12px;height:12px"></i> Supprimer</button>
+                </form>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-span-1 sm:col-span-2 rounded-xl border border-surface-700 bg-surface-800/40 p-8 text-center text-sm text-ink-subtle">Aucun voyage trouvé.</div>
+    {% endfor %}
+{% endblock %}
