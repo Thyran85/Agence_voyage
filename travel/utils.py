@@ -22,7 +22,7 @@ def format_price(value):
         number = float(value)
     except (TypeError, ValueError):
         return str(value)
-    return f"{number:,.0f} €".replace(",", " ")
+    return f"{number:,.0f} Ar".replace(",", " ")
 
 
 def short_text(value, limit=60):

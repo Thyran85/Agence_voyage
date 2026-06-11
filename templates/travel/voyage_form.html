@@ -1,5 +1,5 @@
 {% extends "travel/base.html" %}
-{% block title %}{% if mode == "create" %}Nouveau voyage{% else %}Modifier voyage{% endif %} - Elite Concierge{% endblock %}
+{% block title %}{% if mode == "create" %}Nouveau voyage{% else %}Modifier voyage{% endif %} - Thyran Voyage{% endblock %}
 {% block content %}
 <div class="max-w-3xl mx-auto lg:mx-0">
     <a href="{% url 'travel:voyage_list' %}" class="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink transition">
@@ -42,7 +42,7 @@
                     {{ form.date_retour }}
                 </div>
                 <div>
-                    <label for="{{ form.prix.id_for_label }}" class="form-label">Prix (€)</label>
+                    <label for="{{ form.prix.id_for_label }}" class="form-label">Prix (Ar)</label>
                     {{ form.prix }}
                 </div>
                 <div>

@@ -52,13 +52,11 @@ def _base_context(request, **extra):
 
 
 _STOCK_IMAGE_MAP = {
-    "france": "/static/travel/img/destinations/paris.jpg",
-    "italie": "/static/travel/img/destinations/rome.jpg",
-    "italy": "/static/travel/img/destinations/rome.jpg",
-    "espagne": "/static/travel/img/destinations/barcelone.jpg",
-    "spain": "/static/travel/img/destinations/barcelone.jpg",
-    "maroc": "/static/travel/img/destinations/marrakech.jpg",
-    "morocco": "/static/travel/img/destinations/marrakech.jpg",
+    "madagascar": "/static/travel/img/destinations/antananarivo.jpg",
+    "antananarivo": "/static/travel/img/destinations/antananarivo.jpg",
+    "nosybe": "/static/travel/img/destinations/nosybe.jpg",
+    "toliara": "/static/travel/img/destinations/toliara.jpg",
+    "ilesaintemarie": "/static/travel/img/destinations/sainte-marie.jpg",
 }
 
 
@@ -590,7 +588,7 @@ def _reservations_to_csv():
     yield "\ufeff"  # BOM so Excel detects UTF-8
     yield writer.writerow([
         "ID", "Client", "Voyage", "Pays", "Ville",
-        "Date réservation", "Personnes", "Statut", "Montant (€)",
+        "Date réservation", "Personnes", "Statut", "Montant (Ar)",
     ])
     for row in rows:
         yield writer.writerow([

@@ -1,6 +1,6 @@
 {% extends "travel/base.html" %}
 {% load travel_extras %}
-{% block title %}{% if mode == "create" %}Nouvelle destination{% else %}Modifier destination{% endif %} - Elite Concierge{% endblock %}
+{% block title %}{% if mode == "create" %}Nouvelle destination{% else %}Modifier destination{% endif %} - Thyran Voyage{% endblock %}
 {% block content %}
 <div class="max-w-3xl mx-auto lg:mx-0">
     <a href="{% url 'travel:destination_list' %}" class="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink transition">
@@ -30,18 +30,25 @@
         </section>
         <section class="rounded-2xl border border-surface-700 bg-surface-900 p-6 space-y-5">
             <div>
-                <h3 class="text-sm font-semibold text-ink flex items-center gap-2"><i data-lucide="euro" class="lucide text-brand-400"></i> Tarification &amp; média</h3>
+                <h3 class="text-sm font-semibold text-ink flex items-center gap-2"><i data-lucide="banknote" class="lucide text-brand-400"></i> Tarification &amp; média</h3>
                 <p class="text-xs text-ink-subtle">Prix de base et image mise en avant.</p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="{{ form.prix_base.id_for_label }}" class="form-label">Prix de base (€)</label>
+                    <label for="{{ form.prix_base.id_for_label }}" class="form-label">Prix de base (Ar)</label>
                     {{ form.prix_base }}
                 </div>
                 <div>
                     <label for="{{ form.image_path.id_for_label }}" class="form-label">Image (URL ou chemin)</label>
                     {{ form.image_path }}
-                    <p class="mt-1 text-[11px] text-ink-subtle">Laisser vide pour utiliser l'image par défaut du pays. Accepte une URL (<code class="font-mono text-brand-400">https://...</code>) ou un chemin (<code class="font-mono text-brand-400">/static/travel/img/...</code>).</p>
+                    <p class="mt-1 text-[11px] text-ink-subtle">Laisser vide pour utiliser l'image par défaut. Accepte une URL (<code class="font-mono text-brand-400">https://...</code>) ou un chemin (<code class="font-mono text-brand-400">/static/travel/img/...</code>).</p>
+                    {% if item.id_destination %}
+                    <div class="mt-1.5 rounded-md border border-surface-700 bg-surface-800/60 px-2.5 py-1.5 flex items-center gap-2">
+                        <i data-lucide="file-image" class="lucide shrink-0 text-ink-muted" style="width:14px;height:14px"></i>
+                        <span class="text-[11px] text-ink-subtle font-mono truncate" id="current-image-path">{{ item|destination_image }}</span>
+                        <span class="ml-auto shrink-0 rounded bg-surface-700 px-1.5 py-0.5 text-[10px] text-ink-muted">actuel</span>
+                    </div>
+                    {% endif %}
                     <div class="mt-2 flex flex-wrap items-center gap-2">
                         <label for="image-upload-input" class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-surface-700 bg-surface-800 px-2.5 py-1.5 text-xs font-semibold text-ink hover:border-surface-600 transition">
                             <i data-lucide="upload" class="lucide" style="width:14px;height:14px"></i>
@@ -63,7 +70,7 @@
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
                     <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2">
                         <div class="text-sm font-semibold text-white drop-shadow"><span id="preview-ville">{{ item.ville|default:form.ville.value|default:"Ville" }}</span><span class="ml-1 text-white/70 font-normal" id="preview-pays">{{ item.pays|default:form.pays.value|default:"Pays" }}</span></div>
-                        <div class="rounded-full bg-black/60 px-2 py-0.5 font-mono text-xs font-bold text-white ring-1 ring-white/20" id="preview-price">{{ item.prix_base|default:form.prix_base.value|default:"—" }} €</div>
+                        <div class="rounded-full bg-black/60 px-2 py-0.5 font-mono text-xs font-bold text-white ring-1 ring-white/20" id="preview-price">{{ item.prix_base|default:form.prix_base.value|default:"—" }} Ar</div>
                     </div>
                 </div>
             </div>
@@ -88,6 +95,7 @@
 (function () {
     var pathInput = document.getElementById("{{ form.image_path.id_for_label }}");
     var preview = document.getElementById("destination-image-preview");
+    var currentPathEl = document.getElementById("current-image-path");
     var paysInput = document.getElementById("{{ form.pays.id_for_label }}");
     var villeInput = document.getElementById("{{ form.ville.id_for_label }}");
     var prixInput = document.getElementById("{{ form.prix_base.id_for_label }}");
@@ -121,18 +129,25 @@
             }
             return "/static/travel/img/destinations/" + raw.replace(/^\/+/, "");
         }
-        return stock[slugify(paysInput ? paysInput.value : "")] || fallback;
+        return stock[slugify(villeInput ? villeInput.value : "")] ||
+               stock[slugify(paysInput ? paysInput.value : "")] ||
+               fallback;
     }
 
     function refreshText() {
         if (previewVille) previewVille.textContent = (villeInput && villeInput.value) || "Ville";
         if (previewPays) previewPays.textContent = (paysInput && paysInput.value) || "Pays";
-        if (previewPrice) previewPrice.textContent = ((prixInput && prixInput.value) || "—") + " €";
+        if (previewPrice) previewPrice.textContent = ((prixInput && prixInput.value) || "—") + " Ar";
     }
 
-    pathInput.addEventListener("input", function () { preview.src = resolve(); });
-    if (paysInput) paysInput.addEventListener("input", function () { preview.src = resolve(); });
-    if (villeInput) villeInput.addEventListener("input", function () { preview.src = resolve(); });
+    function refreshPath() {
+        var src = resolve();
+        preview.src = src;
+        if (currentPathEl) currentPathEl.textContent = src;
+    }
+    pathInput.addEventListener("input", refreshPath);
+    if (paysInput) paysInput.addEventListener("input", refreshPath);
+    if (villeInput) villeInput.addEventListener("input", refreshPath);
     if (prixInput) prixInput.addEventListener("input", refreshText);
     if (paysInput) paysInput.addEventListener("input", refreshText);
     if (villeInput) villeInput.addEventListener("input", refreshText);

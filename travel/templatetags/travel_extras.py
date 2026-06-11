@@ -34,13 +34,11 @@ _SLUG_RE = re.compile(r"[^a-z0-9]+")
 # Add new countries here when you drop a new file in
 # static/travel/img/destinations/{slug}.jpg
 _STOCK_IMAGES = {
-    "france": "paris.jpg",
-    "italie": "rome.jpg",
-    "italy": "rome.jpg",
-    "espagne": "barcelone.jpg",
-    "spain": "barcelone.jpg",
-    "maroc": "marrakech.jpg",
-    "morocco": "marrakech.jpg",
+    "madagascar": "antananarivo.jpg",
+    "antananarivo": "antananarivo.jpg",
+    "nosybe": "nosybe.jpg",
+    "toliara": "toliara.jpg",
+    "ilesaintemarie": "sainte-marie.jpg",
 }
 
 _DEFAULT_IMAGE = "default.jpg"
@@ -72,19 +70,24 @@ def destination_image(value):
     """
     if isinstance(value, dict):
         image_path = (value.get("image_path") or "").strip()
+        ville = (value.get("ville") or "").strip()
         pays = (value.get("pays") or "").strip()
     else:
         image_path = (value or "").strip()
+        ville = ""
         pays = ""
 
     if image_path:
         lowered = image_path.lower()
         if lowered.startswith(("http://", "https://", "/static/", "/media/")):
             return image_path
-        # Treat as a relative path under /static/
         return f"/static/travel/img/destinations/{image_path.lstrip('/')}"
 
-    filename = _STOCK_IMAGES.get(_slugify(pays), _DEFAULT_IMAGE)
+    filename = (
+        _STOCK_IMAGES.get(_slugify(ville))
+        or _STOCK_IMAGES.get(_slugify(pays))
+        or _DEFAULT_IMAGE
+    )
     return f"/static/travel/img/destinations/{filename}"
 
 

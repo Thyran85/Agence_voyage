@@ -84,35 +84,35 @@ END;
 /
 
 INSERT INTO clients (nom, prenom, telephone, email, adresse)
-VALUES ('Dupont', 'Claire', '0601020304', 'claire.dupont@example.com', '12 rue des Lilas, Paris');
+VALUES ('Rakoto', 'Mialy', '0321001001', 'mialy.rakoto@mail.mg', 'Lot IVT 12, Antananarivo');
 INSERT INTO clients (nom, prenom, telephone, email, adresse)
-VALUES ('Martin', 'Hugo', '0605060708', 'hugo.martin@example.com', '8 avenue Victor Hugo, Lyon');
+VALUES ('Rabe', 'Faly', '0321002002', 'faly.rabe@mail.mg', 'Route circulaire, Mahamasina');
 INSERT INTO clients (nom, prenom, telephone, email, adresse)
-VALUES ('Benali', 'Sarah', '0611121314', 'sarah.benali@example.com', '5 boulevard Massena, Marseille');
+VALUES ('Andriantsara', 'Nivo', '0321003003', 'nivo.andriantsara@mail.mg', 'BP 45, Antsirabe');
 
 INSERT INTO destinations (pays, ville, description, prix_base, image_path)
-VALUES ('France', 'Paris', 'Culture, gastronomie et monuments.', 650, NULL);
+VALUES ('Madagascar', 'Antananarivo', 'Capitale des milles collines, artisanat et culture Merina.', 3250000, NULL);
 INSERT INTO destinations (pays, ville, description, prix_base, image_path)
-VALUES ('Italie', 'Rome', 'Circuit historique et dolce vita.', 780, NULL);
+VALUES ('Madagascar', 'Nosy Be', 'Île paradisiaque, plages de sable blanc et eaux turquoise.', 3900000, NULL);
 INSERT INTO destinations (pays, ville, description, prix_base, image_path)
-VALUES ('Espagne', 'Barcelone', 'Mer, architecture et vie nocturne.', 720, NULL);
+VALUES ('Madagascar', 'Toliara', 'Plages sauvages et baobabs de renom.', 3600000, NULL);
 INSERT INTO destinations (pays, ville, description, prix_base, image_path)
-VALUES ('Maroc', 'Marrakech', 'Souks, palais et desert.', 890, NULL);
+VALUES ('Madagascar', 'Île Sainte-Marie', 'Plages bordées de cocotiers et observation des baleines.', 4450000, NULL);
 
 INSERT INTO voyages (id_destination, date_depart, date_retour, prix, places_disponibles)
-VALUES (1, DATE '2026-07-10', DATE '2026-07-17', 850, 24);
+VALUES (1, DATE '2026-07-10', DATE '2026-07-17', 4250000, 24);
 INSERT INTO voyages (id_destination, date_depart, date_retour, prix, places_disponibles)
-VALUES (2, DATE '2026-08-03', DATE '2026-08-12', 1100, 18);
+VALUES (2, DATE '2026-08-03', DATE '2026-08-12', 5500000, 18);
 INSERT INTO voyages (id_destination, date_depart, date_retour, prix, places_disponibles)
-VALUES (3, DATE '2026-09-05', DATE '2026-09-12', 930, 30);
+VALUES (3, DATE '2026-09-05', DATE '2026-09-12', 4650000, 30);
 INSERT INTO voyages (id_destination, date_depart, date_retour, prix, places_disponibles)
-VALUES (4, DATE '2026-10-14', DATE '2026-10-24', 1250, 12);
+VALUES (4, DATE '2026-10-14', DATE '2026-10-24', 6250000, 12);
 
 INSERT INTO reservations (id_client, id_voyage, date_reservation, nombre_personnes, montant)
-VALUES (1, 1, DATE '2026-06-01', 2, 1700);
+VALUES (1, 1, DATE '2026-06-01', 2, 8500000);
 INSERT INTO reservations (id_client, id_voyage, date_reservation, nombre_personnes, montant)
-VALUES (2, 2, DATE '2026-06-02', 1, 1100);
+VALUES (2, 2, DATE '2026-06-02', 1, 5500000);
 INSERT INTO reservations (id_client, id_voyage, date_reservation, nombre_personnes, montant)
-VALUES (3, 1, DATE '2026-06-03', 3, 2550);
+VALUES (3, 1, DATE '2026-06-03', 3, 12750000);
 
 COMMIT;

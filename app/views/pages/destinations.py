@@ -132,7 +132,7 @@ class DestinationTable(Panel):
 
     def _format_price(self, value):
         try:
-            return f"{float(value):,.0f} €".replace(",", " ")
+            return f"{float(value):,.0f} Ar".replace(",", " ")
         except (TypeError, ValueError):
             return value or ""
 

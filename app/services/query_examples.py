@@ -1,9 +1,9 @@
 QUERY_EXAMPLES = [
     ("SELECT", "SELECT id_client, nom, prenom, email FROM clients"),
-    ("WHERE", "SELECT * FROM destinations WHERE pays = 'France'"),
-    ("LIKE", "SELECT * FROM clients WHERE LOWER(nom) LIKE '%dup%'"),
-    ("BETWEEN", "SELECT * FROM voyages WHERE prix BETWEEN 500 AND 2000"),
-    ("IN", "SELECT * FROM destinations WHERE pays IN ('France', 'Italie', 'Espagne')"),
+    ("WHERE", "SELECT * FROM destinations WHERE pays = 'Madagascar'"),
+    ("LIKE", "SELECT * FROM clients WHERE LOWER(nom) LIKE '%rak%'"),
+    ("BETWEEN", "SELECT * FROM voyages WHERE prix BETWEEN 2500000 AND 10000000"),
+    ("IN", "SELECT * FROM destinations WHERE ville IN ('Antananarivo', 'Nosy Be', 'Toliara')"),
     ("ORDER BY", "SELECT * FROM voyages ORDER BY date_depart DESC"),
     (
         "GROUP BY",

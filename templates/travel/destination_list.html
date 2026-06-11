@@ -1,6 +1,6 @@
 {% extends "travel/_list_base.html" %}
 {% load travel_extras %}
-{% block title %}Destinations - Elite Concierge{% endblock %}
+{% block title %}Destinations - Thyran Voyage{% endblock %}
 {% block list_title %}Catalogue des destinations{% endblock %}
 {% block list_subtitle %}Organiser le catalogue de pays, villes et prix de base.{% endblock %}
 {% block list_actions %}
@@ -38,7 +38,7 @@
             <td class="px-5 py-3.5 text-right">
                 <div class="inline-flex items-baseline gap-1">
                     <span class="font-mono text-base font-bold text-ink">{{ destination.prix_base }}</span>
-                    <span class="text-xs text-ink-subtle">€</span>
+                    <span class="text-xs text-ink-subtle">Ar</span>
                 </div>
             </td>
             <td class="px-5 py-3.5">
@@ -66,7 +66,7 @@
                         <div class="font-semibold text-white truncate drop-shadow">{{ destination.ville }}</div>
                         <div class="text-[11px] text-white/75 truncate">{{ destination.pays }}</div>
                     </div>
-                    <div class="shrink-0 rounded-full bg-black/60 px-2 py-0.5 font-mono text-xs font-bold text-white ring-1 ring-white/20">{{ destination.prix_base }} €</div>
+                    <div class="shrink-0 rounded-full bg-black/60 px-2 py-0.5 font-mono text-xs font-bold text-white ring-1 ring-white/20">{{ destination.prix_base }} Ar</div>
                 </div>
             </div>
             <div class="p-3">

@@ -10,13 +10,15 @@ except ImportError:
 
 
 DESTINATION_PALETTES = {
-    "paris": ("#20343f", "#82d3de", "#ffb59a"),
-    "rome": ("#39251f", "#ffb59a", "#e0c0b5"),
-    "barcelone": ("#16343a", "#82d3de", "#ffdbce"),
-    "marrakech": ("#3a2418", "#ffb59a", "#765d54"),
-    "florence": ("#2f261d", "#e0c0b5", "#ffb59a"),
-    "santorin": ("#18323f", "#82d3de", "#e5e2e1"),
-    "kyoto": ("#2e1d24", "#ffb59a", "#82d3de"),
+    "antananarivo": ("#20343f", "#82d3de", "#ffb59a"),
+    "nosy be": ("#0e3a42", "#5dd9c8", "#ffe0b2"),
+    "toliara": ("#3a2418", "#e8a87c", "#f4d03f"),
+    "sainte-marie": ("#16343a", "#82d3de", "#ffdbce"),
+    "île sainte-marie": ("#16343a", "#82d3de", "#ffdbce"),
+    "ilesaintemarie": ("#16343a", "#82d3de", "#ffdbce"),
+    "antsirabe": ("#2f261d", "#e0c0b5", "#ffb59a"),
+    "fianarantsoa": ("#18323f", "#82d3de", "#e5e2e1"),
+    "diego suarez": ("#2e1d24", "#ffb59a", "#82d3de"),
 }
 
 

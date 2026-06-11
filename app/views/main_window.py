@@ -27,7 +27,7 @@ class TravelAgencyApp(ctk.CTk):
     def __init__(self):
         super().__init__(fg_color=COLORS["background"])
         configure_tree_style()
-        self.title("Elite Concierge - Oracle Database")
+        self.title("Thyran Voyage - Oracle Database")
         self.geometry("1280x760")
         self.minsize(1100, 680)
 
@@ -50,7 +50,7 @@ class TravelAgencyApp(ctk.CTk):
         sidebar.grid(row=0, column=0, rowspan=2, sticky="nsew")
         sidebar.grid_propagate(False)
 
-        ctk.CTkLabel(sidebar, text="Elite Concierge", text_color=COLORS["primary"], font=app_font(28, "bold")).pack(
+        ctk.CTkLabel(sidebar, text="Thyran Voyage", text_color=COLORS["primary"], font=app_font(28, "bold")).pack(
             padx=16, pady=(20, 0), anchor="w"
         )
         ctk.CTkLabel(sidebar, text="GESTION BACK-OFFICE", text_color=COLORS["muted"], font=app_font(10, "bold")).pack(
@@ -102,7 +102,7 @@ class TravelAgencyApp(ctk.CTk):
         ctk.CTkFrame(actions, width=1, height=32, fg_color=COLORS["border"]).pack(side="left", padx=14)
         profile = ctk.CTkFrame(actions, fg_color="transparent")
         profile.pack(side="left")
-        ctk.CTkLabel(profile, text="Jean Dupont", text_color=COLORS["text"], font=app_font(12, "bold")).pack(anchor="e")
+        ctk.CTkLabel(profile, text="Mialy Rakoto", text_color=COLORS["text"], font=app_font(12, "bold")).pack(anchor="e")
         ctk.CTkLabel(profile, text="Agent Sénior", text_color=COLORS["muted"], font=app_font(11)).pack(anchor="e")
         ctk.CTkFrame(topbar, height=1, fg_color=COLORS["border"]).grid(
             row=1, column=0, columnspan=2, sticky="ew"
