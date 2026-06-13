@@ -1,5 +1,9 @@
 """Template context processors for the travel app."""
+import logging
+
 from django.urls import NoReverseMatch, reverse
+
+logger = logging.getLogger(__name__)
 
 
 NAV_ITEMS = (
@@ -9,7 +13,6 @@ NAV_ITEMS = (
     ("voyage_list", "Voyages", "plane"),
     ("reservation_list", "Réservations", "calendar-check"),
     ("filters", "Filtres", "sliders-horizontal"),
-    ("sql_examples", "SQL Oracle", "database"),
 )
 
 
@@ -19,6 +22,7 @@ def nav_items(request):
         try:
             url = reverse(f"travel:{name}")
         except NoReverseMatch:
+            logger.warning("No reverse match for nav item: %s", name)
             continue
         items.append({"name": name, "label": label, "icon": icon, "url": url})
     return {"nav_items": items}

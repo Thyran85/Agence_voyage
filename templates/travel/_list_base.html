@@ -25,12 +25,12 @@
                 <select name="sort_by" class="rounded-lg border border-surface-700 bg-surface-950 px-3 py-2 text-sm text-ink focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
                     {% block sort_options %}{% endblock %}
                 </select>
-                <div class="inline-flex rounded-lg border border-surface-700 bg-surface-950 p-0.5 text-xs font-semibold">
-                    <label class="cursor-pointer rounded-md px-2.5 py-1.5 transition {% if sort_dir == 'ASC' %}bg-surface-700 text-ink{% else %}text-ink-muted hover:text-ink{% endif %}">
-                        <input type="radio" name="sort_dir" value="ASC" class="sr-only" {% if sort_dir == 'ASC' %}checked{% endif %} /> ASC
+                <div class="inline-flex rounded-lg border border-surface-700 bg-surface-950 p-0.5 text-xs font-semibold" role="radiogroup" aria-label="Ordre de tri">
+                    <label for="sort-asc" class="cursor-pointer rounded-md px-2.5 py-1.5 transition {% if sort_dir == 'ASC' %}bg-surface-700 text-ink{% else %}text-ink-muted hover:text-ink{% endif %}">
+                        <input type="radio" name="sort_dir" id="sort-asc" value="ASC" class="sr-only peer" {% if sort_dir == 'ASC' %}checked{% endif %} onchange="this.form.submit()" /> ASC
                     </label>
-                    <label class="cursor-pointer rounded-md px-2.5 py-1.5 transition {% if sort_dir == 'DESC' %}bg-surface-700 text-ink{% else %}text-ink-muted hover:text-ink{% endif %}">
-                        <input type="radio" name="sort_dir" value="DESC" class="sr-only" {% if sort_dir == 'DESC' %}checked{% endif %} /> DESC
+                    <label for="sort-desc" class="cursor-pointer rounded-md px-2.5 py-1.5 transition {% if sort_dir == 'DESC' %}bg-surface-700 text-ink{% else %}text-ink-muted hover:text-ink{% endif %}">
+                        <input type="radio" name="sort_dir" id="sort-desc" value="DESC" class="sr-only peer" {% if sort_dir == 'DESC' %}checked{% endif %} onchange="this.form.submit()" /> DESC
                     </label>
                 </div>
                 <button type="submit" class="col-span-2 sm:col-span-1 btn-primary">
@@ -40,7 +40,7 @@
         </form>
 
         <!-- Mobile cards (<md) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 md:hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 md:hidden stagger-enter">
             {% block cards_body %}{% endblock %}
         </div>
 
@@ -52,11 +52,12 @@
                         {% block grid_header %}{% endblock %}
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-surface-700">
+                <tbody class="divide-y divide-surface-700 stagger-enter">
                     {% block grid_body %}{% endblock %}
                 </tbody>
             </table>
         </div>
+
     </section>
 
     {% block below_grid %}{% endblock %}

@@ -2,7 +2,7 @@
 {% load travel_extras %}
 {% block title %}{% if mode == "create" %}Nouvelle destination{% else %}Modifier destination{% endif %} - Thyran Voyage{% endblock %}
 {% block content %}
-<div class="max-w-3xl mx-auto lg:mx-0">
+<div class="max-w-3xl mx-auto">
     <a href="{% url 'travel:destination_list' %}" class="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink transition">
         <i data-lucide="arrow-left" class="lucide"></i>
         Retour aux destinations
@@ -19,11 +19,11 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="{{ form.pays.id_for_label }}" class="form-label">Pays</label>
+                    <label for="{{ form.pays.id_for_label }}" class="form-label">Pays{% if form.pays.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     {{ form.pays }}
                 </div>
                 <div>
-                    <label for="{{ form.ville.id_for_label }}" class="form-label">Ville</label>
+                    <label for="{{ form.ville.id_for_label }}" class="form-label">Ville{% if form.ville.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     {{ form.ville }}
                 </div>
             </div>
@@ -35,11 +35,11 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="{{ form.prix_base.id_for_label }}" class="form-label">Prix de base (Ar)</label>
+                    <label for="{{ form.prix_base.id_for_label }}" class="form-label">Prix de base (Ar){% if form.prix_base.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     {{ form.prix_base }}
                 </div>
                 <div>
-                    <label for="{{ form.image_path.id_for_label }}" class="form-label">Image (URL ou chemin)</label>
+                    <label for="{{ form.image_path.id_for_label }}" class="form-label">Image (URL ou chemin){% if form.image_path.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     {{ form.image_path }}
                     <p class="mt-1 text-[11px] text-ink-subtle">Laisser vide pour utiliser l'image par défaut. Accepte une URL (<code class="font-mono text-brand-400">https://...</code>) ou un chemin (<code class="font-mono text-brand-400">/static/travel/img/...</code>).</p>
                     {% if item.id_destination %}
@@ -59,7 +59,7 @@
                     </div>
                 </div>
                 <div class="sm:col-span-2">
-                    <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                    <label for="{{ form.description.id_for_label }}" class="form-label">Description{% if form.description.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     {{ form.description }}
                 </div>
             </div>
@@ -70,7 +70,7 @@
                     <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none"></div>
                     <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-2">
                         <div class="text-sm font-semibold text-white drop-shadow"><span id="preview-ville">{{ item.ville|default:form.ville.value|default:"Ville" }}</span><span class="ml-1 text-white/70 font-normal" id="preview-pays">{{ item.pays|default:form.pays.value|default:"Pays" }}</span></div>
-                        <div class="rounded-full bg-black/60 px-2 py-0.5 font-mono text-xs font-bold text-white ring-1 ring-white/20" id="preview-price">{{ item.prix_base|default:form.prix_base.value|default:"—" }} Ar</div>
+                        <div class="rounded-full bg-black/60 px-2 py-0.5 font-mono text-xs font-bold text-white ring-1 ring-white/20" id="preview-price">{{ item.prix_base|default:form.prix_base.value|default:"—"|format_price }}</div>
                     </div>
                 </div>
             </div>
@@ -137,7 +137,13 @@
     function refreshText() {
         if (previewVille) previewVille.textContent = (villeInput && villeInput.value) || "Ville";
         if (previewPays) previewPays.textContent = (paysInput && paysInput.value) || "Pays";
-        if (previewPrice) previewPrice.textContent = ((prixInput && prixInput.value) || "—") + " Ar";
+        if (previewPrice) {
+            var raw = (prixInput && prixInput.value) || "";
+            if (!raw) { previewPrice.textContent = "—"; return; }
+            var num = parseFloat(raw.replace(/\s/g, "").replace(",", "."));
+            if (isNaN(num)) { previewPrice.textContent = raw; return; }
+            previewPrice.textContent = Math.floor(num).toLocaleString("fr-FR").replace(/\u202f/g, " ");
+        }
     }
 
     function refreshPath() {

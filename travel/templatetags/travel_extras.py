@@ -1,9 +1,11 @@
 """Custom template tags and filters for the travel app."""
+import logging
 import re
 from datetime import date, datetime
 
 from django import template
 
+logger = logging.getLogger(__name__)
 register = template.Library()
 
 
@@ -39,6 +41,16 @@ _STOCK_IMAGES = {
     "nosybe": "nosybe.jpg",
     "toliara": "toliara.jpg",
     "ilesaintemarie": "sainte-marie.jpg",
+    "espagne": "barcelone.jpg",
+    "barcelone": "barcelone.jpg",
+    "barcelona": "barcelone.jpg",
+    "maroc": "marrakech.jpg",
+    "marrakech": "marrakech.jpg",
+    "france": "paris.jpg",
+    "paris": "paris.jpg",
+    "italie": "rome.jpg",
+    "rome": "rome.jpg",
+    "roma": "rome.jpg",
 }
 
 _DEFAULT_IMAGE = "default.jpg"
@@ -91,6 +103,18 @@ def destination_image(value):
     return f"/static/travel/img/destinations/{filename}"
 
 
+@register.filter(name="format_price")
+def format_price(value):
+    if value is None or value == "":
+        return "—"
+    try:
+        number = int(float(value))
+        return f"{number:,}".replace(",", " ")
+    except (TypeError, ValueError):
+        logger.warning("Invalid price value: %s", value)
+        return str(value) if value else "—"
+
+
 @register.filter(name="destination_label")
 def destination_label(value):
     """Return a short "Ville, Pays" label for a destination dict."""
@@ -101,3 +125,37 @@ def destination_label(value):
     if ville and pays:
         return f"{ville}, {pays}"
     return ville or pays or "—"
+
+
+_COLUMN_LABELS = {
+    "id_voyage": "ID Voyage",
+    "id_reservation": "ID Réservation",
+    "id_destination": "ID Destination",
+    "id_client": "ID Client",
+    "date_depart": "Date départ",
+    "date_retour": "Date retour",
+    "date_reservation": "Date réservation",
+    "nombre_personnes": "Personnes",
+    "places_disponibles": "Places",
+    "prix_base": "Prix base",
+    "prix": "Prix",
+    "montant": "Montant",
+    "pays": "Pays",
+    "ville": "Ville",
+    "nom": "Nom",
+    "prenom": "Prénom",
+    "telephone": "Téléphone",
+    "email": "Email",
+    "adresse": "Adresse",
+    "status": "Statut",
+    "description": "Description",
+    "image_path": "Image",
+    "total": "Total",
+    "label": "Libellé",
+}
+
+
+@register.filter(name="column_label")
+def column_label(value):
+    """Map a DB column name to a user-friendly French label."""
+    return _COLUMN_LABELS.get(str(value).lower(), str(value).replace("_", " ").title())

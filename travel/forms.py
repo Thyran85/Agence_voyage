@@ -33,6 +33,12 @@ class ClientForm(forms.Form):
         cleaned = super().clean()
         for key in cleaned:
             cleaned[key] = _strip(cleaned.get(key) or "")
+        nom = cleaned.get("nom", "")
+        prenom = cleaned.get("prenom", "")
+        if not nom and not self._errors.get("nom"):
+            self.add_error("nom", "Le nom est obligatoire.")
+        if not prenom and not self._errors.get("prenom"):
+            self.add_error("prenom", "Le prénom est obligatoire.")
         return cleaned
 
 
@@ -87,11 +93,10 @@ class ReservationForm(forms.Form):
     nombre_personnes = forms.IntegerField(min_value=1, widget=forms.NumberInput(attrs={"class": "form-input", "min": "1"}))
     status = forms.ChoiceField(
         choices=[
-            ("EN ATTENTE", "En attente"),
             ("CONFIRMÉ", "Confirmé"),
             ("ANNULÉ", "Annulé"),
         ],
-        initial="EN ATTENTE",
+        initial="CONFIRMÉ",
         required=False,
         widget=forms.Select(attrs={"class": "form-select"}),
     )

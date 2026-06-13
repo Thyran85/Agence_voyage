@@ -98,5 +98,9 @@ class FilterFrame(ctk.CTkFrame):
             self.sql_box.delete("1.0", "end")
             self.sql_box.insert("1.0", " ".join(sql.split()))
             self.table.set_rows(rows)
-        except Exception as error:
-            messagebox.showerror("Filtrage impossible", str(error))
+        except ConnectionError as e:
+            messagebox.showerror("Connexion perdue", f"{e}\n\nVérifiez qu'Oracle est démarré et réessayez.")
+        except RuntimeError as e:
+            messagebox.showerror("Filtrage impossible", str(e))
+        except Exception as e:
+            messagebox.showerror("Erreur inattendue", f"{e}\n\nVérifiez les critères saisis et réessayez.")

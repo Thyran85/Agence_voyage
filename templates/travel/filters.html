@@ -1,11 +1,12 @@
 {% extends "travel/base.html" %}
+{% load travel_extras %}
 {% block title %}Filtres - Thyran Voyage{% endblock %}
 {% block content %}
 <div class="flex flex-col gap-6">
     <div>
         <div class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-400">Analyse</div>
         <h2 class="mt-1 text-2xl font-bold text-ink">Filtres multicritères</h2>
-        <p class="mt-1 text-sm text-ink-muted">Explorer les voyages et réservations avec aperçu SQL généré.</p>
+        <p class="mt-1 text-sm text-ink-muted">Explorer les voyages et réservations selon vos critères.</p>
     </div>
 
     <div class="inline-flex w-fit rounded-xl border border-surface-700 bg-surface-900 p-1">
@@ -71,16 +72,6 @@
         </div>
     </form>
 
-    {% if sql_text %}
-        <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-900">
-            <header class="flex items-center justify-between border-b border-surface-700 px-5 py-3">
-                <h3 class="text-sm font-semibold text-ink inline-flex items-center gap-2"><i data-lucide="database" class="lucide text-brand-400"></i> Requête SQL générée</h3>
-                <span class="rounded-full bg-brand-500/10 px-2.5 py-0.5 text-[10px] font-bold text-brand-300">SQL</span>
-            </header>
-            <pre class="sql-code">{{ sql_text }}</pre>
-        </section>
-    {% endif %}
-
     {% if rows %}
         <section class="overflow-hidden rounded-2xl border border-surface-700 bg-surface-900">
             <header class="flex items-center justify-between border-b border-surface-700 px-5 py-3">
@@ -91,7 +82,7 @@
                     <thead>
                         <tr class="border-b border-surface-700 text-left text-[11px] uppercase tracking-wider text-ink-subtle">
                             {% for key in rows.0.keys %}
-                                <th class="px-5 py-3 font-semibold">{{ key|upper }}</th>
+                                <th class="px-5 py-3 font-semibold">{{ key|column_label }}</th>
                             {% endfor %}
                         </tr>
                     </thead>

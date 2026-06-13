@@ -1,0 +1,20 @@
+/* ============================================================== */
+/* LOCAL FONTS – Inter (variable) + JetBrains Mono (variable)      */
+/* Originally from Google Fonts, self-hosted for offline use.      */
+/* ============================================================== */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/static/travel/fonts/Inter-variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url('/static/travel/fonts/JetBrainsMono-variable.woff2') format('woff2');
+}

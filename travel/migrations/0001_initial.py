@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('date_reservation', models.DateField()),
                 ('nombre_personnes', models.IntegerField()),
                 ('montant', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('status', models.CharField(default='EN ATTENTE', max_length=20)),
+                ('status', models.CharField(default='CONFIRMÉ', max_length=20)),
             ],
             options={
                 'db_table': 'reservations',

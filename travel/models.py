@@ -60,7 +60,6 @@ class Voyage(models.Model):
 
 class Reservation(models.Model):
     STATUS_CHOICES = [
-        ("EN ATTENTE", "En attente"),
         ("CONFIRMÉ", "Confirmé"),
         ("ANNULÉ", "Annulé"),
     ]
@@ -71,7 +70,7 @@ class Reservation(models.Model):
     date_reservation = models.DateField()
     nombre_personnes = models.IntegerField()
     montant = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, default="EN ATTENTE")
+    status = models.CharField(max_length=20, default="CONFIRMÉ")
 
     class Meta:
         managed = False

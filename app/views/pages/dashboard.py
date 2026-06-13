@@ -157,8 +157,12 @@ class DashboardFrame(ctk.CTkFrame):
             self.top_voyage["title"].configure(text=voyage.get("label"))
             self.top_voyage["subtitle"].configure(text=f"{voyage.get('total', 0)} réservations enregistrées")
             self._refresh_recent_reservations()
-        except Exception as error:
-            messagebox.showerror("Dashboard indisponible", str(error))
+        except ConnectionError as e:
+            messagebox.showerror("Connexion perdue", f"{e}\n\nVérifiez qu'Oracle est démarré et réessayez.")
+        except RuntimeError as e:
+            messagebox.showerror("Dashboard indisponible", str(e))
+        except Exception as e:
+            messagebox.showerror("Erreur inattendue", f"{e}\n\nRechargez le dashboard ou contactez l'administrateur.")
 
     def _refresh_recent_reservations(self):
         for child in self.recent_container.winfo_children()[4:]:

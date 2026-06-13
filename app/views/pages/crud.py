@@ -81,6 +81,8 @@ class CrudFrame(ctk.CTkFrame):
             if service and source and hasattr(service, source):
                 try:
                     items = getattr(service, source).list()
+                except (ConnectionError, RuntimeError):
+                    items = []
                 except Exception:
                     items = []
             else:
@@ -271,10 +273,10 @@ class CrudFrame(ctk.CTkFrame):
         for name, entry in self.entries.items():
             try:
                 entry.set("")
-            except Exception:
+            except (AttributeError, TypeError):
                 try:
                     entry.delete(0, "end")
-                except Exception:
+                except (AttributeError, TypeError):
                     pass
 
     def fill_form(self, _event=None):
@@ -286,21 +288,19 @@ class CrudFrame(ctk.CTkFrame):
             entry = self.entries[name]
             value = selected.get(name, "")
             if field.get("type") == "select":
-                # map id -> label
                 mapping = self._select_mappings.get(name, {})
-                # reverse mapping
                 rev = {v: k for k, v in mapping.items()}
                 label = rev.get(value) or rev.get(str(value)) or ""
                 try:
                     entry.set(label)
-                except Exception:
+                except (AttributeError, TypeError):
                     pass
             else:
                 try:
                     entry.delete(0, "end")
                     if value is not None:
                         entry.insert(0, str(value)[:10] if field.get("type") == "date" else str(value))
-                except Exception:
+                except (AttributeError, TypeError):
                     pass
 
     def refresh(self):
@@ -312,16 +312,26 @@ class CrudFrame(ctk.CTkFrame):
                 sort_dir=self.sort_dir.get(),
             )
             self.table.set_rows(rows)
-        except Exception as error:
-            messagebox.showerror("Erreur Oracle", str(error))
+        except ConnectionError as e:
+            messagebox.showerror("Connexion perdue", f"{e}\n\nVérifiez qu'Oracle est démarré et réessayez.")
+        except RuntimeError as e:
+            messagebox.showerror("Erreur", str(e))
+        except Exception as e:
+            messagebox.showerror("Erreur inattendue", f"{e}\n\nRechargez l'application ou contactez l'administrateur.")
 
     def create_item(self):
         try:
             self.repository.create(self.collect_form())
             self.clear_form()
             self.refresh()
-        except Exception as error:
-            messagebox.showerror("Ajout impossible", str(error))
+        except ConnectionError as e:
+            messagebox.showerror("Connexion perdue", f"{e}\n\nVérifiez qu'Oracle est démarré et réessayez.")
+        except ValueError as e:
+            messagebox.showerror("Données invalides", str(e))
+        except RuntimeError as e:
+            messagebox.showerror("Création impossible", str(e))
+        except Exception as e:
+            messagebox.showerror("Erreur inattendue", f"{e}\n\nVérifiez les données saisies et réessayez.")
 
     def update_item(self):
         item_id = self.table.selected_id()
@@ -331,8 +341,14 @@ class CrudFrame(ctk.CTkFrame):
         try:
             self.repository.update(item_id, self.collect_form())
             self.refresh()
-        except Exception as error:
-            messagebox.showerror("Modification impossible", str(error))
+        except ConnectionError as e:
+            messagebox.showerror("Connexion perdue", f"{e}\n\nVérifiez qu'Oracle est démarré et réessayez.")
+        except ValueError as e:
+            messagebox.showerror("Données invalides", str(e))
+        except RuntimeError as e:
+            messagebox.showerror("Modification impossible", str(e))
+        except Exception as e:
+            messagebox.showerror("Erreur inattendue", f"{e}\n\nVérifiez les données et réessayez.")
 
     def delete_item(self):
         item_id = self.table.selected_id()
@@ -345,5 +361,9 @@ class CrudFrame(ctk.CTkFrame):
             self.repository.delete(item_id)
             self.clear_form()
             self.refresh()
-        except Exception as error:
-            messagebox.showerror("Suppression impossible", str(error))
+        except ConnectionError as e:
+            messagebox.showerror("Connexion perdue", f"{e}\n\nVérifiez qu'Oracle est démarré et réessayez.")
+        except RuntimeError as e:
+            messagebox.showerror("Suppression impossible", str(e))
+        except Exception as e:
+            messagebox.showerror("Erreur inattendue", f"{e}\n\nVérifiez que l'élément n'est pas lié à d'autres enregistrements.")

@@ -1,7 +1,7 @@
 {% extends "travel/base.html" %}
 {% block title %}{% if mode == "create" %}Nouvelle réservation{% else %}Modifier réservation{% endif %} - Thyran Voyage{% endblock %}
 {% block content %}
-<div class="max-w-3xl mx-auto lg:mx-0">
+<div class="max-w-3xl mx-auto">
     <a href="{% url 'travel:reservation_list' %}" class="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink transition">
         <i data-lucide="arrow-left" class="lucide"></i>
         Retour aux réservations
@@ -18,7 +18,7 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label for="{{ form.id_client.id_for_label }}" class="form-label">Client</label>
+                    <label for="{{ form.id_client.id_for_label }}" class="form-label">Client{% if form.id_client.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     <select name="{{ form.id_client.html_name }}" id="{{ form.id_client.id_for_label }}" class="form-select">
                         <option value="">— Choisir un client —</option>
                         {% for c in clients %}
@@ -27,11 +27,11 @@
                     </select>
                 </div>
                 <div>
-                    <label for="{{ form.id_voyage.id_for_label }}" class="form-label">Voyage</label>
+                    <label for="{{ form.id_voyage.id_for_label }}" class="form-label">Voyage{% if form.id_voyage.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     <select name="{{ form.id_voyage.html_name }}" id="{{ form.id_voyage.id_for_label }}" class="form-select">
                         <option value="">— Choisir un voyage —</option>
                         {% for v in voyages %}
-                            <option value="{{ v.id_voyage }}" {% if form.id_voyage.value|stringformat:"s" == v.id_voyage|stringformat:"s" %}selected{% endif %}>{{ v.pays }} — {{ v.ville }} ({{ v.date_depart|slice:":10" }})</option>
+                            <option value="{{ v.id_voyage }}" {% if form.id_voyage.value|stringformat:"s" == v.id_voyage|stringformat:"s" %}selected{% endif %} data-prix="{{ v.prix }}">{{ v.pays }} — {{ v.ville }} ({{ v.date_depart|slice:":10" }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -44,17 +44,21 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                    <label for="{{ form.date_reservation.id_for_label }}" class="form-label">Date de réservation</label>
+                    <label for="{{ form.date_reservation.id_for_label }}" class="form-label">Date de réservation{% if form.date_reservation.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     {{ form.date_reservation }}
                 </div>
                 <div>
-                    <label for="{{ form.nombre_personnes.id_for_label }}" class="form-label">Nombre de personnes</label>
+                    <label for="{{ form.nombre_personnes.id_for_label }}" class="form-label">Nombre de personnes{% if form.nombre_personnes.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     {{ form.nombre_personnes }}
                 </div>
                 <div>
-                    <label for="{{ form.status.id_for_label }}" class="form-label">Statut</label>
+                    <label for="{{ form.status.id_for_label }}" class="form-label">Statut{% if form.status.field.required %} <span class="text-red-500">*</span>{% endif %}</label>
                     {{ form.status }}
                 </div>
+            </div>
+            <div class="rounded-lg border border-surface-700 bg-surface-800/60 px-4 py-3 flex items-center justify-between">
+                <span class="text-sm text-ink-muted">Montant estimé</span>
+                <span id="montant-preview" class="font-mono text-lg font-bold text-blue-400">—</span>
             </div>
         </section>
 
@@ -73,4 +77,27 @@
         </div>
     </form>
 </div>
+<script>
+(function () {
+    var voyageSelect = document.getElementById("{{ form.id_voyage.id_for_label }}");
+    var personnesInput = document.getElementById("{{ form.nombre_personnes.id_for_label }}");
+    var montantEl = document.getElementById("montant-preview");
+    if (!voyageSelect || !personnesInput || !montantEl) return;
+
+    function updateMontant() {
+        var selected = voyageSelect.options[voyageSelect.selectedIndex];
+        var prix = selected ? parseFloat(selected.getAttribute("data-prix")) : NaN;
+        var nb = parseInt(personnesInput.value, 10);
+        if (isNaN(prix) || isNaN(nb) || nb < 1) {
+            montantEl.textContent = "—";
+            return;
+        }
+        var total = Math.floor(prix * nb);
+        montantEl.textContent = total.toLocaleString("fr-FR").replace(/\u202f/g, " ") + " Ar";
+    }
+    voyageSelect.addEventListener("change", updateMontant);
+    personnesInput.addEventListener("input", updateMontant);
+    updateMontant();
+})();
+</script>
 {% endblock %}
